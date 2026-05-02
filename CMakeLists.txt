@@ -20,7 +20,7 @@ file(GLOB_RECURSE SOURCES
 )
 
 # ---------------------------------------------------------------------------
-# Assets automatisch in den Build-Ordner kopieren (ohne manuelle Einträge)
+# Assets automatisch in den Build-Ordner kopieren
 # ---------------------------------------------------------------------------
 if(EXISTS "${CMAKE_SOURCE_DIR}/assets")
     file(COPY "${CMAKE_SOURCE_DIR}/assets" DESTINATION "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
@@ -28,33 +28,31 @@ if(EXISTS "${CMAKE_SOURCE_DIR}/assets")
 endif()
 
 # ---------------------------------------------------------------------------
-# Raylib 6.0 via FetchContent herunterladen
+# Libraries via FetchContent
 # ---------------------------------------------------------------------------
 include(FetchContent)
 
+# Raylib 6.0
 FetchContent_Declare(
     raylib
     GIT_REPOSITORY https://github.com/raysan5/raylib.git
     GIT_TAG        6.0
     GIT_SHALLOW    TRUE
 )
-
 set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(BUILD_GAMES    OFF CACHE BOOL "" FORCE)
-
 FetchContent_MakeAvailable(raylib)
 
-# ---------------------------------------------------------------------------
-# ImGui (neueste) + rlImGui Binding für Raylib herunterladen
-# ---------------------------------------------------------------------------
+# ImGui (docking branch)
 FetchContent_Declare(
     imgui
     GIT_REPOSITORY https://github.com/ocornut/imgui.git
-    GIT_TAG        docking   # neuester docking-branch (empfohlen für Tools)
+    GIT_TAG        docking
     GIT_SHALLOW    TRUE
 )
 FetchContent_MakeAvailable(imgui)
 
+# rlImGui Binding
 FetchContent_Declare(
     rlimgui
     GIT_REPOSITORY https://github.com/raylib-extras/rlImGui.git
@@ -63,8 +61,19 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(rlimgui)
 
+# nlohmann/json
+FetchContent_Declare(
+    nlohmann_json
+    GIT_REPOSITORY https://github.com/nlohmann/json.git
+    GIT_TAG        v3.11.3
+    GIT_SHALLOW    TRUE
+)
+FetchContent_MakeAvailable(nlohmann_json)
+
+# ---------------------------------------------------------------------------
 # ImGui als eigene Library bauen
-add_library(imgui STATIC
+# ---------------------------------------------------------------------------
+add_library(imgui_lib STATIC
     ${imgui_SOURCE_DIR}/imgui.cpp
     ${imgui_SOURCE_DIR}/imgui_demo.cpp
     ${imgui_SOURCE_DIR}/imgui_draw.cpp
@@ -73,12 +82,12 @@ add_library(imgui STATIC
     ${rlimgui_SOURCE_DIR}/rlImGui.cpp
 )
 
-target_include_directories(imgui PUBLIC
+target_include_directories(imgui_lib PUBLIC
     ${imgui_SOURCE_DIR}
     ${rlimgui_SOURCE_DIR}
 )
 
-target_link_libraries(imgui PUBLIC raylib)
+target_link_libraries(imgui_lib PUBLIC raylib)
 
 # ---------------------------------------------------------------------------
 # Executable
@@ -93,7 +102,8 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
     raylib
-    imgui
+    imgui_lib
+    nlohmann_json::nlohmann_json
 )
 
 # ---------------------------------------------------------------------------
@@ -115,12 +125,8 @@ elseif(UNIX)
 endif()
 
 # ---------------------------------------------------------------------------
-# Assets nach jedem Build neu kopieren (falls geändert)
+# Assets nach jedem Build neu kopieren
 # ---------------------------------------------------------------------------
-add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E echo "Build fertig: ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
-)
-
 if(EXISTS "${CMAKE_SOURCE_DIR}/assets")
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory

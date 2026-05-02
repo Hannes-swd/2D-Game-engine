@@ -1,6 +1,11 @@
 #include "raylib.h"
 #include "rlImGui.h"
 #include "imgui.h"
+#include <nlohmann/json.hpp>
+#include <fstream>
+#include <string>
+
+using json = nlohmann::json;
 
 int main()
 {
@@ -15,10 +20,25 @@ int main()
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
-    bool showDemoWindow  = true;
-    bool showEnginePanel = true;
-    float clearColor[3]  = { 0.1f, 0.1f, 0.15f };
-    int   frameCount     = 0;
+    // --- JSON Test: config.json laden (falls vorhanden) ---
+    std::string windowTitle = "2D Game Engine";
+    int         targetFps   = 60;
+
+    std::ifstream configFile("assets/config.json");
+    if (configFile.is_open())
+    {
+        json config = json::parse(configFile);
+        windowTitle = config.value("title", windowTitle);
+        targetFps   = config.value("fps",   targetFps);
+        SetTargetFPS(targetFps);
+        SetWindowTitle(windowTitle.c_str());
+    }
+
+    bool  showDemoWindow  = true;
+    bool  showEnginePanel = true;
+    bool  showJsonPanel   = true;
+    float clearColor[3]   = { 0.1f, 0.1f, 0.15f };
+    int   frameCount      = 0;
 
     while (!WindowShouldClose())
     {
@@ -34,14 +54,14 @@ int main()
             };
             ClearBackground(bg);
 
-            DrawText("Raylib + ImGui funktioniert!", 40, 40, 28, RAYWHITE);
+            DrawText("Raylib + ImGui + JSON funktioniert!", 40, 40, 28, RAYWHITE);
             DrawCircle(screenWidth / 2, screenHeight / 2, 60.0f, SKYBLUE);
             DrawText(TextFormat("Frame: %d", frameCount), 40, 80, 20, LIGHTGRAY);
             DrawFPS(10, 10);
 
             rlImGuiBegin();
 
-                // Fullscreen Dockspace
+                // --- Fullscreen Dockspace ---
                 ImGuiViewport* viewport = ImGui::GetMainViewport();
                 ImGui::SetNextWindowPos(viewport->Pos);
                 ImGui::SetNextWindowSize(viewport->Size);
@@ -57,7 +77,7 @@ int main()
                 ImGui::DockSpace(ImGui::GetID("MainDockspace"), ImVec2(0, 0), ImGuiDockNodeFlags_PassthruCentralNode);
                 ImGui::End();
 
-                // Engine Panel
+                // --- Engine Panel ---
                 if (showEnginePanel)
                 {
                     ImGui::Begin("Engine Panel", &showEnginePanel);
@@ -68,11 +88,44 @@ int main()
                     ImGui::ColorEdit3("##bg", clearColor);
 
                     ImGui::Separator();
-                    ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
+                    ImGui::Text("FPS: %.1f", io.Framerate);
                     ImGui::Text("Frame: %d", frameCount);
 
                     if (ImGui::Button("ImGui Demo"))
                         showDemoWindow = !showDemoWindow;
+                    ImGui::SameLine();
+                    if (ImGui::Button("JSON Panel"))
+                        showJsonPanel = !showJsonPanel;
+
+                    ImGui::End();
+                }
+
+                // --- JSON Panel ---
+                if (showJsonPanel)
+                {
+                    ImGui::Begin("JSON Test", &showJsonPanel);
+                    ImGui::Text("nlohmann/json ist eingebunden!");
+                    ImGui::Separator();
+
+                    // JSON live erstellen und anzeigen
+                    json live;
+                    live["frame"]  = frameCount;
+                    live["fps"]    = (int)io.Framerate;
+                    live["title"]  = windowTitle;
+
+                    ImGui::Text("Live JSON:");
+                    ImGui::TextWrapped("%s", live.dump(2).c_str());
+
+                    ImGui::Separator();
+                    if (ImGui::Button("Config speichern"))
+                    {
+                        json save;
+                        save["title"] = windowTitle;
+                        save["fps"]   = targetFps;
+                        save["bg"]    = { clearColor[0], clearColor[1], clearColor[2] };
+                        std::ofstream out("assets/config.json");
+                        out << save.dump(4);
+                    }
 
                     ImGui::End();
                 }
