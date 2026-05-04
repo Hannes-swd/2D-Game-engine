@@ -85,3 +85,23 @@ void Map::clear() {
 int Map::getSize() const {
     return tiles.size();
 }
+
+void draw_ground(const Map& welt, const BodenDatenbank& boden, int tileSize) {
+    for (const auto& [key, typ] : welt.tiles) {
+        // Parse x,y from key (format "x,y")
+        size_t commaPos = key.find(',');
+        if (commaPos != std::string::npos) {
+            int x = std::stoi(key.substr(0, commaPos));
+            int y = std::stoi(key.substr(commaPos + 1));
+            
+            // Versuche Textur zu zeichnen
+            auto it = boden.texturen.find(typ);
+            if (it != boden.texturen.end() && it->second.id != 0) {
+                DrawTexture(it->second, x * tileSize, y * tileSize, WHITE);
+            } else {
+                // Fallback: Violetter Block wenn Textur fehlt
+                DrawRectangle(x * tileSize, y * tileSize, tileSize, tileSize, VIOLET);
+            }
+        }
+    }
+}

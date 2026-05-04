@@ -12,12 +12,20 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
 # ---------------------------------------------------------------------------
-# Alle .cpp Dateien im src/ Ordner automatisch finden (rekursiv)
+# Alle .cpp Dateien im Projektverzeichnis finden
 # ---------------------------------------------------------------------------
-file(GLOB_RECURSE SOURCES
-    "${CMAKE_SOURCE_DIR}/src/*.cpp"
-    "${CMAKE_SOURCE_DIR}/src/*.cc"
+file(GLOB SOURCES CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"
 )
+
+# Optional: Auch src/ Unterordner, falls vorhanden
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src")
+    file(GLOB_RECURSE SRC_SOURCES
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cc"
+    )
+    list(APPEND SOURCES ${SRC_SOURCES})
+endif()
 
 # ---------------------------------------------------------------------------
 # Assets automatisch in den Build-Ordner kopieren
@@ -71,7 +79,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(nlohmann_json)
 
 # ---------------------------------------------------------------------------
-# ImGui als eigene Library bauen
+# ImGui als eigene Library bauen - NUR RAYLIB BACKEND
 # ---------------------------------------------------------------------------
 add_library(imgui_lib STATIC
     ${imgui_SOURCE_DIR}/imgui.cpp
@@ -95,6 +103,7 @@ target_link_libraries(imgui_lib PUBLIC raylib)
 add_executable(${PROJECT_NAME} ${SOURCES})
 
 target_include_directories(${PROJECT_NAME} PRIVATE
+    ${CMAKE_SOURCE_DIR}
     ${CMAKE_SOURCE_DIR}/src
     ${imgui_SOURCE_DIR}
     ${rlimgui_SOURCE_DIR}

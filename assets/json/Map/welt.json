@@ -2,6 +2,6 @@
     "name": "Meine Welt",
     "tiles": {
         "0,0": "gras",
-        "1,0": "gras"
+        "1,0": "concrete"
     }
 }

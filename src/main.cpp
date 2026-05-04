@@ -4,6 +4,7 @@
 #include <nlohmann/json.hpp>
 #include "ground.h"
 #include "map.h"
+#include "Cam.h"
 
 using json = nlohmann::json;
 
@@ -11,10 +12,15 @@ int main()
 {
     int screenWidth = 1280;
     int screenHeight = 720;
+    int TILE_SIZE = 32;
 
     InitWindow(screenWidth, screenHeight, "2D Game Engine");
     SetWindowState(FLAG_WINDOW_RESIZABLE);
     SetTargetFPS(60);
+
+
+    initCamera();
+
 
     // config.json laden
     std::ifstream configFile("assets/config.json");
@@ -41,9 +47,13 @@ int main()
     while (!WindowShouldClose())
     {
         BeginDrawing();
+
+            kameramoovment();
             ClearBackground(WHITE);
-
-
+            BeginMode2D(camera);
+                draw_ground(welt, boden, TILE_SIZE);
+            EndMode2D();
+            
             EndDrawing();
     }
 

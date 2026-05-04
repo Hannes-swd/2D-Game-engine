@@ -3,7 +3,7 @@
 #include <string>
 #include <nlohmann/json.hpp>
 
-class BodenDatenbank;
+struct BodenDatenbank;
 
 struct Map {
     std::unordered_map<std::string, std::string> tiles;
@@ -18,3 +18,5 @@ struct Map {
     void clear();
     int getSize() const;
 };
+
+void draw_ground(const Map& welt, const BodenDatenbank& boden, int tileSize);
