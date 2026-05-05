@@ -14,18 +14,14 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 # ---------------------------------------------------------------------------
 # Alle .cpp Dateien im Projektverzeichnis finden
 # ---------------------------------------------------------------------------
-file(GLOB SOURCES CONFIGURE_DEPENDS
+file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.cc"
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.cxx"
 )
 
-# Optional: Auch src/ Unterordner, falls vorhanden
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src")
-    file(GLOB_RECURSE SRC_SOURCES
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cc"
-    )
-    list(APPEND SOURCES ${SRC_SOURCES})
-endif()
+# Filter out files from build directories if any
+list(FILTER SOURCES EXCLUDE REGEX ".*/build/.*")
 
 # ---------------------------------------------------------------------------
 # Assets automatisch in den Build-Ordner kopieren
@@ -96,6 +92,14 @@ target_include_directories(imgui_lib PUBLIC
 )
 
 target_link_libraries(imgui_lib PUBLIC raylib)
+
+# ---------------------------------------------------------------------------
+# Debug: Print found source files
+# ---------------------------------------------------------------------------
+message(STATUS "Gefundene Quell-Dateien:")
+foreach(SOURCE_FILE ${SOURCES})
+    message(STATUS "  - ${SOURCE_FILE}")
+endforeach()
 
 # ---------------------------------------------------------------------------
 # Executable

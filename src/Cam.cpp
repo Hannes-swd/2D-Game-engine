@@ -10,7 +10,7 @@ void initCamera() {
     camera.target.x = 0.0f;
     camera.target.y = 0.0f;
     camera.rotation = 0.0f;
-    camera.zoom = 1.0f;
+    camera.zoom = 4.0f;
 }
 void kameramoovment() {
     float delta = GetFrameTime();
@@ -21,5 +21,5 @@ void kameramoovment() {
     if (IsKeyDown(KEY_D)) camera.target.x += cameraSpeed * delta;
     
     camera.offset.x = GetScreenWidth() / 2.0f;
-    camera.offset.y = GetScreenHeight() / 2.0f;    
+    camera.offset.y = GetScreenHeight() / 2.0f;
 }
