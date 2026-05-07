@@ -5,6 +5,8 @@
 #include "ground.h"
 #include "map.h"
 #include "Cam.h"
+#include "player.h"
+
 
 using json = nlohmann::json;
 
@@ -18,7 +20,8 @@ int main()
     SetWindowState(FLAG_WINDOW_RESIZABLE);
     SetTargetFPS(60);
 
-
+    player neuerSpieler;
+    
     initCamera();
 
 
@@ -37,6 +40,10 @@ int main()
     //map
     Map welt;
     welt.laden("assets/json/Map/welt.json");
+
+    //spieler
+    loadPlayer(neuerSpieler);
+
 
 
     // ========== BODEN DATENBANK LADEN ==========
@@ -60,6 +67,7 @@ int main()
     // Cleanup
     boden.entlade_texturen();
     welt.speichern("assets/json/Map/welt.json");
+    savePlayer(neuerSpieler);
     CloseWindow();
     return 0;
 }

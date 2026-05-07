@@ -47,4 +47,10 @@ class player {
         void Change_Name(std::string Name) { name = Name; };
         std::string Get_Name() { return name; };
 
+        Vector2 Get_position() const { return {(float)posX, (float)posY}; }
+        std::string Get_Name() const { return name; }
+
 };
+
+void loadPlayer(player& p);
+void savePlayer(const player& p);
