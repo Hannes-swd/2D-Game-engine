@@ -55,6 +55,7 @@ int main()
     {
         BeginDrawing();
 
+            moovePlayer(neuerSpieler);
             kameramoovment();
             ClearBackground(WHITE);
             BeginMode2D(camera);
