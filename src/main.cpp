@@ -60,6 +60,8 @@ int main()
             ClearBackground(WHITE);
             BeginMode2D(camera);
                 draw_ground(welt, boden, TILE_SIZE);
+
+                DrawPlayer(neuerSpieler);
             EndMode2D();
             
             EndDrawing();

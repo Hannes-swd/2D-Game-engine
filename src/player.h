@@ -39,7 +39,6 @@ public:
         }
     }
 
-    Vector2 Get_position()       { return { posX, posY }; }
     Vector2 Get_position() const { return { posX, posY }; }
 
     void        Change_Name(std::string Name) { name = Name; }
@@ -50,3 +49,4 @@ public:
 void loadPlayer(player& p);
 void savePlayer(const player& p);
 void moovePlayer(player& p);
+void DrawPlayer(player& p);

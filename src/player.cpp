@@ -42,3 +42,11 @@ void moovePlayer(player& p) {
     camera.target.x = pos.x;
     camera.target.y = pos.y;
 }
+void DrawPlayer(player& p) {
+    Vector2 playerpos = p.Get_position();
+    float posx = playerpos.x;
+    float posy = playerpos.y;
+
+
+    DrawCircle(posx, posy, 10, ORANGE);
+}
