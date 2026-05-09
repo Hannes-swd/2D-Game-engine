@@ -1,0 +1,9 @@
+{
+    "grasItem": {
+        "name": "gras",
+        "textur": "assets/Images/Map/gras.png",
+        "onKlick": "grasItemklick" ,
+        "inInventar": "grasItemInInventar" ,
+        "inHand": "grasItemInHand"
+    }
+}
