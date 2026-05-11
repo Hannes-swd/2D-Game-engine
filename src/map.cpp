@@ -28,7 +28,7 @@ std::string Map::getTile(int x, int y) const {
 void Map::init(const BodenDatenbank& boden) {
     bodenDatenbank = &boden;
     
-    if (boden.alle_boden_arten.size() > 0) {
+    if (!boden.alle_boden_arten.empty()) {
         defaultTyp = boden.alle_boden_arten.begin().key();
         std::cout << "Default Bodentyp: " << defaultTyp << std::endl;
     }

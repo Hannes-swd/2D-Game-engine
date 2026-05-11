@@ -1,6 +1,8 @@
 {
     "posX": 0,
     "posY": 0,
-    "inventory": [],
+    "inventory": [
+        {"id": "grasItem", "anzahl": 10}
+    ],
     "name": "robert"
 }

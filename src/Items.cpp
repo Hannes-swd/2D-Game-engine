@@ -11,7 +11,6 @@ using json = nlohmann::json;
 
 ItemManager g_itemManager;
 
-// Sucht Funktionsnamen in einer .cpp Datei per Regex (nur STL, kein WinAPI nötig)
 std::vector<std::string> findeFunktionenInDatei(const std::string& dateiPfad) {
     std::vector<std::string> gefundeneFunktionen;
     
@@ -32,47 +31,57 @@ std::vector<std::string> findeFunktionenInDatei(const std::string& dateiPfad) {
     return gefundeneFunktionen;
 }
 
-void ladeFunktionenAusDatei(const std::string& itemId, const std::string& dateiPfad) {
-    std::cout << "Hinweis: Dynamisches Laden von " << dateiPfad << " wird zur Compile-Zeit benötigt." << std::endl;
-    std::cout << "Die Funktionen für Item '" << itemId << "' müssen in einer zentralen Datei registriert werden." << std::endl;
+// Lädt Items aus einer einzelnen JSON-Datei (z.B. assets/json/item.json)
+static void ladeItemsAusJson(const std::string& pfad,
+                              std::unordered_map<std::string, std::unique_ptr<Item>>& items)
+{
+    std::ifstream f(pfad);
+    if (!f.is_open()) {
+        std::cerr << "Fehler: Kann Item-JSON nicht öffnen: " << pfad << std::endl;
+        return;
+    }
+
+    json data;
+    f >> data;
+
+    for (auto& [id, itemData] : data.items()) {
+        auto item         = std::make_unique<Item>();
+        item->id          = id;
+        item->name        = itemData.value("name",    id);
+        item->texturPfad  = itemData.value("textur",  "");
+        item->dateiPfad   = pfad;
+        item->ladenTextur();
+
+        items[id] = std::move(item);
+        std::cout << "Item geladen: " << id << std::endl;
+    }
 }
 
 void ItemManager::scanneUndLadeItems() {
     namespace fs = std::filesystem;
-    
-    if (!fs::exists(itemsOrdner)) {
-        std::cout << "Items-Ordner nicht gefunden: " << itemsOrdner << std::endl;
-        return;
+
+    // 1. Zuerst die zentrale item.json laden (dein aktuelles Format)
+    const std::string einzelDatei = "assets/json/item.json";
+    if (fs::exists(einzelDatei)) {
+        std::cout << "Lade Items aus: " << einzelDatei << std::endl;
+        ladeItemsAusJson(einzelDatei, items);
     }
-    
-    for (const auto& entry : fs::recursive_directory_iterator(itemsOrdner)) {
-        if (entry.path().extension() == ".cpp" || entry.path().extension() == ".json") {
-            std::string pfad = entry.path().string();
-            std::cout << "Gefunden: " << pfad << std::endl;
-            
+
+    // 2. Zusätzlich den Unterordner assets/json/items/ scannen (falls vorhanden)
+    if (fs::exists(itemsOrdner)) {
+        for (const auto& entry : fs::recursive_directory_iterator(itemsOrdner)) {
             if (entry.path().extension() == ".json") {
-                std::ifstream f(pfad);
-                if (f.is_open()) {
-                    json data;
-                    f >> data;
-                    
-                    for (auto& [id, itemData] : data.items()) {
-                        auto item = std::make_unique<Item>();
-                        item->id = id;
-                        item->name = itemData.value("name", id);
-                        item->texturPfad = itemData.value("textur", "");
-                        item->dateiPfad = itemData.value("sourceFile", "");
-                        item->ladenTextur();
-                        
-                        items[id] = std::move(item);
-                        std::cout << "Item geladen: " << id << std::endl;
-                    }
-                }
+                std::string pfad = entry.path().string();
+                std::cout << "Gefunden: " << pfad << std::endl;
+                ladeItemsAusJson(pfad, items);
             }
         }
     }
+
+    std::cout << "ItemManager: " << items.size() << " Items geladen." << std::endl;
 }
 
 void ItemManager::ladeItemAusDatei(const std::string& dateiPfad) {
     std::cout << "Neue Item-Datei entdeckt: " << dateiPfad << std::endl;
+    ladeItemsAusJson(dateiPfad, items);
 }
