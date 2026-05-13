@@ -59,14 +59,12 @@ int main()
         SetTargetFPS(config.value("fps", 60));
     }
 
-    // Items laden: erst item.json direkt, dann optionalen items/-Ordner
-    ladeItemJson("assets/json/item.json");
 
     // Map laden
     Map welt;
     welt.laden("assets/json/Map/welt.json");
 
-    // Spieler laden (NACH Items, damit g_itemManager die IDs kennt)
+    //spieler
     loadPlayer(neuerSpieler);
 
     // Bodendatenbank laden
@@ -82,15 +80,12 @@ int main()
 
         BeginDrawing();
             ClearBackground(WHITE);
-
             BeginMode2D(camera);
                 draw_ground(welt, boden, TILE_SIZE);
                 DrawPlayer(neuerSpieler);
             EndMode2D();
-
-            DrawInventar(neuerSpieler);
-
-        EndDrawing();
+            
+            EndDrawing();
     }
 
     boden.entlade_texturen();

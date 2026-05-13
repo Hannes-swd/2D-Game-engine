@@ -36,8 +36,9 @@ struct Item {
 class ItemManager {
 private:
     std::unordered_map<std::string, std::unique_ptr<Item>> items;
-    std::string itemsOrdner = "assets/json/items/";
-
+    std::string itemsOrdner = "items/";  // Ordner wo die Item-Dateien liegen
+    
+    // Funktions-Pointer für dynamisch geladene Funktionen
     struct FunctionTable {
         void* onKlick   = nullptr;
         void* onInventar = nullptr;
