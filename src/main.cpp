@@ -11,33 +11,6 @@
 
 using json = nlohmann::json;
 
-// Lädt item.json direkt in den ItemManager
-static void ladeItemJson(const std::string& pfad) {
-    std::ifstream f(pfad);
-    if (!f.is_open()) {
-        std::cerr << "[FEHLER] item.json nicht gefunden: " << pfad << std::endl;
-        return;
-    }
-    json data;
-    f >> data;
-
-    for (auto& [id, itemData] : data.items()) {
-        auto item        = std::make_unique<Item>();
-        item->id         = id;
-        item->name       = itemData.value("name",   id);
-        item->texturPfad = itemData.value("textur", "");
-        item->dateiPfad  = pfad;
-        item->ladenTextur();
-
-        // Direkt in den globalen Manager einfügen via getItem-Trick:
-        // Da items private ist, nutzen wir ladeItemAusDatei als Wrapper —
-        // aber einfacher: wir rufen scanneUndLadeItems() danach NICHT nochmal auf.
-        // Stattdessen registrieren wir hier manuell über den public-Weg:
-        g_itemManager.registriereItem(std::move(item));
-        std::cout << "[OK] Item registriert: " << id << std::endl;
-    }
-}
-
 int main()
 {
     int screenWidth  = 1280;
@@ -48,23 +21,27 @@ int main()
     SetWindowState(FLAG_WINDOW_RESIZABLE);
     SetTargetFPS(60);
 
+    // config.json laden
+    {
+        std::ifstream configFile("assets/config.json");
+        if (configFile.is_open()) {
+            json config = json::parse(configFile);
+            SetWindowTitle(config.value("title", std::string("2D Game Engine")).c_str());
+            SetTargetFPS(config.value("fps", 60));
+        }
+    }
+
     player neuerSpieler;
     initCamera();
 
-    // config.json laden
-    std::ifstream configFile("assets/config.json");
-    if (configFile.is_open()) {
-        json config = json::parse(configFile);
-        SetWindowTitle(config.value("title", std::string("2D Game Engine")).c_str());
-        SetTargetFPS(config.value("fps", 60));
-    }
-
+    // Items laden (assets/json/items/item.json  ODER  assets/json/item.json)
+    g_itemManager.scanneUndLadeItems();
 
     // Map laden
     Map welt;
     welt.laden("assets/json/Map/welt.json");
 
-    //spieler
+    // Spieler laden (lädt auch Inventar aus player.json)
     loadPlayer(neuerSpieler);
 
     // Bodendatenbank laden
@@ -80,12 +57,16 @@ int main()
 
         BeginDrawing();
             ClearBackground(WHITE);
+
             BeginMode2D(camera);
                 draw_ground(welt, boden, TILE_SIZE);
                 DrawPlayer(neuerSpieler);
             EndMode2D();
-            
-            EndDrawing();
+
+            // UI – außerhalb von BeginMode2D damit es screen-space bleibt
+            DrawInventar(neuerSpieler);
+
+        EndDrawing();
     }
 
     boden.entlade_texturen();

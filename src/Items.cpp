@@ -2,42 +2,19 @@
 #include <fstream>
 #include <iostream>
 #include <filesystem>
-#include <regex>
-#include <string>
-#include <vector>
 #include <nlohmann/json.hpp>
 
 using json = nlohmann::json;
 
 ItemManager g_itemManager;
 
-std::vector<std::string> findeFunktionenInDatei(const std::string& dateiPfad) {
-    std::vector<std::string> gefundeneFunktionen;
-    
-    std::ifstream file(dateiPfad);
-    if (!file.is_open()) return gefundeneFunktionen;
-    
-    std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-    
-    std::regex funktionsRegex(R"(void\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\()");
-    std::smatch match;
-    std::string::const_iterator searchStart(content.cbegin());
-    
-    while (std::regex_search(searchStart, content.cend(), match, funktionsRegex)) {
-        gefundeneFunktionen.push_back(match[1].str());
-        searchStart = match.suffix().first;
-    }
-    
-    return gefundeneFunktionen;
-}
-
-// Lädt Items aus einer einzelnen JSON-Datei (z.B. assets/json/item.json)
+// Lädt alle Items aus einer einzelnen JSON-Datei
 static void ladeItemsAusJson(const std::string& pfad,
                               std::unordered_map<std::string, std::unique_ptr<Item>>& items)
 {
     std::ifstream f(pfad);
     if (!f.is_open()) {
-        std::cerr << "Fehler: Kann Item-JSON nicht öffnen: " << pfad << std::endl;
+        std::cerr << "[ItemManager] Kann nicht öffnen: " << pfad << std::endl;
         return;
     }
 
@@ -45,43 +22,53 @@ static void ladeItemsAusJson(const std::string& pfad,
     f >> data;
 
     for (auto& [id, itemData] : data.items()) {
-        auto item         = std::make_unique<Item>();
-        item->id          = id;
-        item->name        = itemData.value("name",    id);
-        item->texturPfad  = itemData.value("textur",  "");
-        item->dateiPfad   = pfad;
+        auto item        = std::make_unique<Item>();
+        item->id         = id;
+        item->name       = itemData.value("name",   id);
+        item->texturPfad = itemData.value("textur", "");
+        item->dateiPfad  = pfad;
         item->ladenTextur();
 
         items[id] = std::move(item);
-        std::cout << "Item geladen: " << id << std::endl;
+        std::cout << "[ItemManager] Item geladen: " << id << std::endl;
     }
 }
 
 void ItemManager::scanneUndLadeItems() {
     namespace fs = std::filesystem;
 
-    // 1. Zuerst die zentrale item.json laden (dein aktuelles Format)
-    const std::string einzelDatei = "assets/json/item.json";
-    if (fs::exists(einzelDatei)) {
-        std::cout << "Lade Items aus: " << einzelDatei << std::endl;
-        ladeItemsAusJson(einzelDatei, items);
+    // 1. Neue Struktur: assets/json/items/item.json
+    const std::string neuPfad = "assets/json/items/item.json";
+    if (fs::exists(neuPfad)) {
+        std::cout << "[ItemManager] Lade: " << neuPfad << std::endl;
+        ladeItemsAusJson(neuPfad, items);
     }
 
-    // 2. Zusätzlich den Unterordner assets/json/items/ scannen (falls vorhanden)
-    if (fs::exists(itemsOrdner)) {
-        for (const auto& entry : fs::recursive_directory_iterator(itemsOrdner)) {
+    // 2. Alter Fallback-Pfad: assets/json/item.json
+    const std::string altPfad = "assets/json/item.json";
+    if (fs::exists(altPfad)) {
+        std::cout << "[ItemManager] Lade (Fallback): " << altPfad << std::endl;
+        ladeItemsAusJson(altPfad, items);
+    }
+
+    // 3. Zusätzlich alle weiteren .json im items-Ordner scannen
+    const std::string ordner = "assets/json/items/";
+    if (fs::exists(ordner)) {
+        for (const auto& entry : fs::recursive_directory_iterator(ordner)) {
             if (entry.path().extension() == ".json") {
                 std::string pfad = entry.path().string();
-                std::cout << "Gefunden: " << pfad << std::endl;
+                // item.json wurde schon oben geladen
+                if (pfad == neuPfad) continue;
+                std::cout << "[ItemManager] Zusatz-JSON: " << pfad << std::endl;
                 ladeItemsAusJson(pfad, items);
             }
         }
     }
 
-    std::cout << "ItemManager: " << items.size() << " Items geladen." << std::endl;
+    std::cout << "[ItemManager] Gesamt: " << items.size() << " Items geladen." << std::endl;
 }
 
 void ItemManager::ladeItemAusDatei(const std::string& dateiPfad) {
-    std::cout << "Neue Item-Datei entdeckt: " << dateiPfad << std::endl;
+    std::cout << "[ItemManager] Neue Item-Datei: " << dateiPfad << std::endl;
     ladeItemsAusJson(dateiPfad, items);
 }
