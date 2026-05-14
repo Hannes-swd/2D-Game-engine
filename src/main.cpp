@@ -9,6 +9,12 @@
 #include "player.h"
 #include "Items.h"
 
+// ── Item-Callback-Deklarationen (definiert in grasItem.cpp usw.) ──────────────
+// Für jedes neue Item einfach hier deklarieren und unten registrieren.
+void grasItemklick();
+void grasItemInInventar();
+void grasItemInHand();
+
 using json = nlohmann::json;
 
 int main()
@@ -34,7 +40,17 @@ int main()
     player neuerSpieler;
     initCamera();
 
-    // Items laden (assets/json/items/item.json  ODER  assets/json/item.json)
+    // ── Funktions-Registry befüllen ───────────────────────────────────────────
+    // WICHTIG: Muss VOR scanneUndLadeItems() stehen!
+    // onKlick → registriereFunktionMitTaste("name", funktion, TASTE)
+    // onHand/onInventar → registriereFunktion("name", funktion)  (keine Taste nötig)
+    g_itemManager.registriereFunktionMitTaste("grasItemklick", grasItemklick, KEY_E);
+    g_itemManager.registriereFunktion("grasItemInInventar",  grasItemInInventar);
+    g_itemManager.registriereFunktion("grasItemInHand",      grasItemInHand);
+    // Neues Item mit anderer Taste:
+    // g_itemManager.registriereFunktionMitTaste("holzItemklick", holzItemklick, KEY_F);
+
+    // ── Items laden (liest JSON und bindet Callbacks über Registry) ───────────
     g_itemManager.scanneUndLadeItems();
 
     // Map laden

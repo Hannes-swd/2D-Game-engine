@@ -6,9 +6,9 @@ void grasItemklick() {
 }
 
 void grasItemInInventar() {
-    std::cout << "[grasItem] Im Inventar" << std::endl;
+    //std::cout << "[grasItem] Im Inventar" << std::endl;
 }
 
 void grasItemInHand() {
-    std::cout << "[grasItem] In der Hand" << std::endl;
+    //std::cout << "[grasItem] In der Hand" << std::endl;
 }

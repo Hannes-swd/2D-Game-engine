@@ -118,32 +118,56 @@ void moovePlayer(player& p) {
 
     // Slot-Auswahl per Tastatur (1–0)
     for (int i = 0; i < 10; i++) {
-        if (IsKeyPressed(KEY_ONE + i)) {
+        if (IsKeyPressed(KEY_ONE + i))
             p.setAktuellerSlot(i);
-            Item* hand = p.getHandItem();
-            if (hand && hand->onHand) hand->onHand();
-        }
     }
 
-    // Mausrad zum Scrollen durch Slots
+    // Mausrad
     float rad = GetMouseWheelMove();
     if (rad != 0.0f) {
         int neuer = p.getAktuellerSlot() - (int)rad;
         if (neuer < 0) neuer = 9;
         if (neuer > 9) neuer = 0;
         p.setAktuellerSlot(neuer);
-        Item* hand = p.getHandItem();
-        if (hand && hand->onHand) hand->onHand();
     }
 
     // Tab: Inventar öffnen/schließen
     if (IsKeyPressed(KEY_TAB)) p.toggleInventar();
 
+    // ── onHand: jeden Frame für das aktive Item ────────────────────────────
+    Item* hand = p.getHandItem();
+    if (hand && hand->onHand) hand->onHand();
+
+    // ── onInventar: jeden Frame für alle Items im Inventar ────────────────
+    for (const auto& slot : p.getInventory()) {
+        if (slot.itemId.empty()) continue;
+        Item* item = g_itemManager.getItem(slot.itemId);
+        if (item && item->onInventar) item->onInventar();
+    }
+
+    // ── onKlick: spezifische Taste ODER Mausklick → aktives Item ──────────
+    // FIX: GetKeyPressed() konsumiert Tasten, daher separat prüfen
+    if (hand && hand->onKlick) {
+        // Prüfe auf die registrierte Taste für dieses Item
+        bool tasteGedrueckt = false;
+        if (hand->klickTaste != -1) {
+            tasteGedrueckt = IsKeyPressed(hand->klickTaste);
+        }
+        
+        // ODER irgendeine Maustaste
+        bool mausGedrueckt = IsMouseButtonPressed(MOUSE_LEFT_BUTTON) ||
+                              IsMouseButtonPressed(MOUSE_RIGHT_BUTTON) ||
+                              IsMouseButtonPressed(MOUSE_MIDDLE_BUTTON);
+        
+        if (tasteGedrueckt || mausGedrueckt) {
+            hand->onKlick();
+        }
+    }
+
     Vector2 pos     = p.Get_position();
     camera.target.x = pos.x;
     camera.target.y = pos.y;
 }
-
 // ── Zeichnen ──────────────────────────────────────────────────────────────────
 
 void DrawPlayer(player& p) {

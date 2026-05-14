@@ -8,7 +8,46 @@ using json = nlohmann::json;
 
 ItemManager g_itemManager;
 
-// Lädt alle Items aus einer einzelnen JSON-Datei
+// ── Hilfsfunktion: verbindet einen JSON-Funktionsnamen mit der Registry ───────
+static void bindFunc(std::function<void()>& target,
+                     const json& data,
+                     const std::string& jsonKey)
+{
+    if (!data.contains(jsonKey)) return;
+    std::string funcName = data[jsonKey].get<std::string>();
+    if (funcName.empty()) return;
+
+    auto fn = g_itemManager.sucheFunc(funcName);
+    if (fn) {
+        target = fn;
+        std::cout << "[ItemManager] Callback gebunden: " << jsonKey
+                  << " -> " << funcName << std::endl;
+    } else {
+        std::cerr << "[ItemManager] WARNUNG: Funktion '" << funcName
+                  << "' (fuer " << jsonKey << ") nicht in der Registry!" << std::endl;
+    }
+}
+
+// Wie bindFunc, setzt zusätzlich item->klickTaste aus der Registry
+static void bindKlick(Item& item, const json& data, const std::string& jsonKey)
+{
+    if (!data.contains(jsonKey)) return;
+    std::string funcName = data[jsonKey].get<std::string>();
+    if (funcName.empty()) return;
+
+    auto fn = g_itemManager.sucheFunc(funcName);
+    if (fn) {
+        item.onKlick   = fn;
+        item.klickTaste = g_itemManager.sucheTaste(funcName);
+        std::cout << "[ItemManager] onKlick gebunden: " << funcName
+                  << "  Taste=" << item.klickTaste << std::endl;
+    } else {
+        std::cerr << "[ItemManager] WARNUNG: Funktion '" << funcName
+                  << "' (fuer " << jsonKey << ") nicht in der Registry!" << std::endl;
+    }
+}
+
+// ── Lädt alle Items aus einer einzelnen JSON-Datei ────────────────────────────
 static void ladeItemsAusJson(const std::string& pfad,
                               std::unordered_map<std::string, std::unique_ptr<Item>>& items)
 {
@@ -28,6 +67,17 @@ static void ladeItemsAusJson(const std::string& pfad,
         item->texturPfad = itemData.value("textur", "");
         item->dateiPfad  = pfad;
         item->ladenTextur();
+
+        // ── Callbacks aus JSON-Namen über die Registry binden ──────────────
+        // JSON-Key   → Item-Callback
+        // "onKlick"  → item->onKlick     (alter Key-Name in JSON: "onKlick")
+        // "inInventar"→ item->onInventar  (JSON nennt es "inInventar")
+        // "inHand"   → item->onHand       (JSON nennt es "inHand")
+        // "onUpdate" → item->onUpdate
+        bindKlick(*item,        itemData, "onKlick");
+        bindFunc(item->onInventar, itemData, "inInventar");
+        bindFunc(item->onHand,     itemData, "inHand");
+        bindFunc(item->onUpdate,   itemData, "onUpdate");
 
         items[id] = std::move(item);
         std::cout << "[ItemManager] Item geladen: " << id << std::endl;
@@ -56,11 +106,10 @@ void ItemManager::scanneUndLadeItems() {
     if (fs::exists(ordner)) {
         for (const auto& entry : fs::recursive_directory_iterator(ordner)) {
             if (entry.path().extension() == ".json") {
-                std::string pfad = entry.path().string();
-                // item.json wurde schon oben geladen
-                if (pfad == neuPfad) continue;
-                std::cout << "[ItemManager] Zusatz-JSON: " << pfad << std::endl;
-                ladeItemsAusJson(pfad, items);
+                std::string p = entry.path().string();
+                if (p == neuPfad) continue;
+                std::cout << "[ItemManager] Zusatz-JSON: " << p << std::endl;
+                ladeItemsAusJson(p, items);
             }
         }
     }
