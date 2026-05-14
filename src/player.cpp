@@ -7,6 +7,14 @@ using json = nlohmann::json;
 
 // ── Inventory-Methoden ────────────────────────────────────────────────────────
 
+Item* player::getHandItem() const {
+    if (aktuellerSlot < (int)inventar.size()) {
+        const std::string& id = inventar[aktuellerSlot].itemId;
+        if (!id.empty()) return g_itemManager.getItem(id);
+    }
+    return nullptr;
+}
+
 void player::addToInventory(const std::string& itemId, int anzahl) {
     for (auto& slot : inventar) {
         if (slot.itemId == itemId) {
@@ -33,6 +41,17 @@ bool player::hasItem(const std::string& itemId) const {
     return false;
 }
 
+void player::swapSlots(int a, int b) {
+    auto& inv = inventar;
+    // Fülle fehlende Slots mit leeren auf
+    while ((int)inv.size() <= std::max(a, b))
+        inv.push_back({"", 0});
+    std::swap(inv[a], inv[b]);
+    // Leere Slots am Ende entfernen
+    while (!inv.empty() && inv.back().itemId.empty())
+        inv.pop_back();
+}
+
 // ── Speichern / Laden ─────────────────────────────────────────────────────────
 
 void loadPlayer(player& p) {
@@ -45,6 +64,7 @@ void loadPlayer(player& p) {
         f >> data;
         p.Set_position(data.value("posX", 0), data.value("posY", 0));
         p.Change_Name(data.value("name", std::string("Spieler")));
+        p.setAktuellerSlot(data.value("aktuellerSlot", 0));
 
         if (data.contains("inventory") && data["inventory"].is_array()) {
             for (const auto& slot : data["inventory"]) {
@@ -65,10 +85,11 @@ void loadPlayer(player& p) {
 
 void savePlayer(const player& p) {
     json data;
-    Vector2 pos  = p.Get_position();
-    data["posX"] = pos.x;
-    data["posY"] = pos.y;
-    data["name"] = p.Get_Name();
+    Vector2 pos        = p.Get_position();
+    data["posX"]       = pos.x;
+    data["posY"]       = pos.y;
+    data["name"]       = p.Get_Name();
+    data["aktuellerSlot"] = p.getAktuellerSlot();
 
     json inventarArray = json::array();
     for (const auto& slot : p.getInventory()) {
@@ -95,6 +116,29 @@ void moovePlayer(player& p) {
     if (IsKeyDown(KEY_A)) p.Move(Left,  delta);
     if (IsKeyDown(KEY_D)) p.Move(Right, delta);
 
+    // Slot-Auswahl per Tastatur (1–0)
+    for (int i = 0; i < 10; i++) {
+        if (IsKeyPressed(KEY_ONE + i)) {
+            p.setAktuellerSlot(i);
+            Item* hand = p.getHandItem();
+            if (hand && hand->onHand) hand->onHand();
+        }
+    }
+
+    // Mausrad zum Scrollen durch Slots
+    float rad = GetMouseWheelMove();
+    if (rad != 0.0f) {
+        int neuer = p.getAktuellerSlot() - (int)rad;
+        if (neuer < 0) neuer = 9;
+        if (neuer > 9) neuer = 0;
+        p.setAktuellerSlot(neuer);
+        Item* hand = p.getHandItem();
+        if (hand && hand->onHand) hand->onHand();
+    }
+
+    // Tab: Inventar öffnen/schließen
+    if (IsKeyPressed(KEY_TAB)) p.toggleInventar();
+
     Vector2 pos     = p.Get_position();
     camera.target.x = pos.x;
     camera.target.y = pos.y;
@@ -105,9 +149,78 @@ void moovePlayer(player& p) {
 void DrawPlayer(player& p) {
     Vector2 pos = p.Get_position();
     DrawCircle((int)pos.x, (int)pos.y, 10, ORANGE);
+
+    // Item in der Hand über dem Spieler anzeigen
+    Item* hand = p.getHandItem();
+    if (hand && hand->textur.id != 0) {
+        const int HAND_SIZE = 14;
+        float scaleX = (float)HAND_SIZE / hand->textur.width;
+        float scaleY = (float)HAND_SIZE / hand->textur.height;
+        float scale  = (scaleX < scaleY) ? scaleX : scaleY;
+        Vector2 drawPos = { pos.x + 10, pos.y - 18 };
+        DrawTextureEx(hand->textur, drawPos, 0.0f, scale, WHITE);
+    }
 }
 
-// ── Inventar-UI (Hotbar unten mittig, 10 Slots) ───────────────────────────────
+// ── Hotbar / Inventar-UI ──────────────────────────────────────────────────────
+
+static void zeichneSlot(int sx, int sy, int size, const InventarSlot* slot,
+                         bool aktiv, bool isDragSource)
+{
+    Color bg = isDragSource ? Color{80, 80, 40, 220}
+             : aktiv        ? Color{80, 80, 30, 240}
+             : (slot && !slot->itemId.empty()) ? Color{60, 60, 60, 220}
+                                               : Color{40, 40, 40, 180};
+
+    Color border = aktiv        ? Color{255, 215, 0, 255}   // Gold für aktiven Slot
+                 : isDragSource ? Color{255, 180, 0, 200}
+                                : Color{120, 120, 120, 200};
+
+    DrawRectangleRounded(
+        { (float)sx, (float)sy, (float)size, (float)size },
+        0.15f, 6, bg
+    );
+    DrawRectangleRoundedLines(
+        { (float)sx, (float)sy, (float)size, (float)size },
+        0.15f, 6, border
+    );
+
+    // Aktiv-Highlight: zusätzlicher innerer Rahmen
+    if (aktiv) {
+        DrawRectangleRoundedLines(
+            { (float)(sx+2), (float)(sy+2), (float)(size-4), (float)(size-4) },
+            0.1f, 4, { 255, 215, 0, 100 }
+        );
+    }
+
+    if (!slot || slot->itemId.empty()) return;
+
+    Item* item = g_itemManager.getItem(slot->itemId);
+    if (item && item->textur.id != 0) {
+        int   drawSize = size - 8;
+        float scaleX   = (float)drawSize / item->textur.width;
+        float scaleY   = (float)drawSize / item->textur.height;
+        float scale    = (scaleX < scaleY) ? scaleX : scaleY;
+        DrawTextureEx(item->textur, { (float)(sx + 4), (float)(sy + 4) }, 0.0f, scale, WHITE);
+    } else {
+        int fontSize = 9;
+        const char* label = slot->itemId.c_str();
+        int tw = MeasureText(label, fontSize);
+        DrawText(label, sx + (size - tw) / 2,
+                 sy + size / 2 - fontSize / 2, fontSize, LIGHTGRAY);
+    }
+
+    if (slot->anzahl > 1) {
+        std::string anzStr = std::to_string(slot->anzahl);
+        int fontSize = 10;
+        int tw = MeasureText(anzStr.c_str(), fontSize);
+        // Schatten
+        DrawText(anzStr.c_str(), sx + size - tw - 3 + 1,
+                 sy + size - fontSize - 2 + 1, fontSize, BLACK);
+        DrawText(anzStr.c_str(), sx + size - tw - 3,
+                 sy + size - fontSize - 2,     fontSize, WHITE);
+    }
+}
 
 void DrawInventar(player& p) {
     const int SLOT_SIZE    = 48;
@@ -123,7 +236,9 @@ void DrawInventar(player& p) {
     int barX = (sw - BAR_W) / 2 - 8;
     int barY = sh - BAR_H - MARGIN_BOT;
 
-    // Hintergrund-Panel
+    auto& inv = p.getInventoryMut();
+
+    // ── Hotbar-Hintergrund ──
     DrawRectangleRounded(
         { (float)barX, (float)barY, (float)(BAR_W + 16), (float)BAR_H },
         0.2f, 8, { 20, 20, 20, 200 }
@@ -133,57 +248,133 @@ void DrawInventar(player& p) {
         0.2f, 8, { 180, 180, 180, 220 }
     );
 
-    const auto& inv = p.getInventory();
-
+    // Slot-Nummern + Slots zeichnen
     for (int i = 0; i < SLOTS; i++) {
         int sx = barX + 8 + i * (SLOT_SIZE + SLOT_PADDING);
         int sy = barY + 8;
 
-        bool belegt = (i < (int)inv.size());
-        Color slotBg = belegt ? Color{60, 60, 60, 220} : Color{40, 40, 40, 180};
+        bool aktiv        = (i == p.getAktuellerSlot());
+        bool isDragSource = (i == p.getDragSlot());
+
+        const InventarSlot* slotPtr = (i < (int)inv.size()) ? &inv[i] : nullptr;
+        zeichneSlot(sx, sy, SLOT_SIZE, slotPtr, aktiv, isDragSource);
+
+    }
+
+    // ── Tooltip: Name des aktiven Items ──
+    Item* hand = p.getHandItem();
+    if (hand) {
+        const char* label = hand->name.c_str();
+        int fontSize = 12;
+        int tw = MeasureText(label, fontSize);
+        int tx = (sw - tw) / 2;
+        int ty = barY - fontSize - 8;
+        DrawText(label, tx + 1, ty + 1, fontSize, BLACK);
+        DrawText(label, tx,     ty,     fontSize, { 255, 230, 100, 255 });
+    }
+
+    // ── Drag & Drop (Maus) ──
+    Vector2 mouse = GetMousePosition();
+
+    // Slot unter Maus finden
+    auto getSlotUnterMaus = [&]() -> int {
+        for (int i = 0; i < SLOTS; i++) {
+            int sx = barX + 8 + i * (SLOT_SIZE + SLOT_PADDING);
+            int sy = barY + 8;
+            if (mouse.x >= sx && mouse.x <= sx + SLOT_SIZE &&
+                mouse.y >= sy && mouse.y <= sy + SLOT_SIZE)
+                return i;
+        }
+        return -1;
+    };
+
+    int slotUnterMaus = getSlotUnterMaus();
+
+    if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+        if (slotUnterMaus >= 0) {
+            // Slot auswählen
+            p.setAktuellerSlot(slotUnterMaus);
+            // Drag starten (nur wenn Slot belegt)
+            if (slotUnterMaus < (int)inv.size() && !inv[slotUnterMaus].itemId.empty()) {
+                p.setDragSlot(slotUnterMaus);
+            }
+            // onHand auslösen
+            Item* h = p.getHandItem();
+            if (h && h->onHand) h->onHand();
+        }
+    }
+
+    if (IsMouseButtonReleased(MOUSE_LEFT_BUTTON)) {
+        int drag = p.getDragSlot();
+        if (drag >= 0 && slotUnterMaus >= 0 && slotUnterMaus != drag) {
+            p.swapSlots(drag, slotUnterMaus);
+        }
+        p.setDragSlot(-1);
+    }
+
+    // ── Drag-Vorschau: schwebendes Item unter dem Cursor ──
+    if (p.getDragSlot() >= 0 && p.getDragSlot() < (int)inv.size()) {
+        const InventarSlot& dragged = inv[p.getDragSlot()];
+        Item* dItem = g_itemManager.getItem(dragged.itemId);
+        if (dItem && dItem->textur.id != 0) {
+            int   drawSize = SLOT_SIZE - 8;
+            float scaleX   = (float)drawSize / dItem->textur.width;
+            float scaleY   = (float)drawSize / dItem->textur.height;
+            float scale    = (scaleX < scaleY) ? scaleX : scaleY;
+            DrawTextureEx(dItem->textur,
+                { mouse.x - drawSize * scale * 0.5f, mouse.y - drawSize * scale * 0.5f },
+                0.0f, scale, { 255, 255, 255, 180 });
+        }
+    }
+
+    // ── Rechtsklick: Item auf Slot → onKlick ──
+    if (IsMouseButtonPressed(MOUSE_RIGHT_BUTTON) && slotUnterMaus >= 0) {
+        p.setAktuellerSlot(slotUnterMaus);
+        Item* clicked = p.getHandItem();
+        if (clicked && clicked->onKlick) clicked->onKlick();
+    }
+
+    // ── Erweitertes Inventar (TAB) ── (Platzhalter-Fenster)
+    if (p.isInventarOffen()) {
+        const int COLS    = 5;
+        const int ROWS    = 4;
+        const int WIN_W   = COLS * (SLOT_SIZE + SLOT_PADDING) - SLOT_PADDING + 24;
+        const int WIN_H   = ROWS * (SLOT_SIZE + SLOT_PADDING) - SLOT_PADDING + 40;
+        int winX = (sw - WIN_W) / 2;
+        int winY = (sh - WIN_H) / 2 - 40;
 
         DrawRectangleRounded(
-            { (float)sx, (float)sy, (float)SLOT_SIZE, (float)SLOT_SIZE },
-            0.15f, 6, slotBg
+            { (float)winX, (float)winY, (float)WIN_W, (float)WIN_H },
+            0.1f, 8, { 15, 15, 15, 230 }
         );
         DrawRectangleRoundedLines(
-            { (float)sx, (float)sy, (float)SLOT_SIZE, (float)SLOT_SIZE },
-            0.15f, 6, { 120, 120, 120, 200 }
+            { (float)winX, (float)winY, (float)WIN_W, (float)WIN_H },
+            0.1f, 8, { 200, 200, 200, 200 }
         );
 
-        // Slot-Nummer
-        DrawText(std::to_string(i + 1).c_str(), sx + 3, sy + 2, 8, { 150, 150, 150, 200 });
+        // Erweiterte Slots (ab Index 10)
+        for (int r = 0; r < ROWS; r++) {
+            for (int c = 0; c < COLS; c++) {
+                int idx = 10 + r * COLS + c;
+                int sx  = winX + 12 + c * (SLOT_SIZE + SLOT_PADDING);
+                int sy  = winY + 28 + r * (SLOT_SIZE + SLOT_PADDING);
+                const InventarSlot* sp = (idx < (int)inv.size()) ? &inv[idx] : nullptr;
+                zeichneSlot(sx, sy, SLOT_SIZE, sp, false, idx == p.getDragSlot());
 
-        if (!belegt) continue;
-
-        const InventarSlot& slot = inv[i];
-
-        // Item-Textur
-        Item* item = g_itemManager.getItem(slot.itemId);
-        if (item && item->textur.id != 0) {
-            int   drawSize = SLOT_SIZE - 8;
-            float scaleX   = (float)drawSize / item->textur.width;
-            float scaleY   = (float)drawSize / item->textur.height;
-            float scale    = (scaleX < scaleY) ? scaleX : scaleY;
-            DrawTextureEx(item->textur, { (float)(sx + 4), (float)(sy + 4) }, 0.0f, scale, WHITE);
-        } else {
-            // Fallback: ID-Text
-            int fontSize = 9;
-            const char* label = slot.itemId.c_str();
-            int tw = MeasureText(label, fontSize);
-            DrawText(label, sx + (SLOT_SIZE - tw) / 2,
-                     sy + SLOT_SIZE / 2 - fontSize / 2, fontSize, LIGHTGRAY);
-        }
-
-        // Anzahl
-        if (slot.anzahl > 1) {
-            std::string anzStr = std::to_string(slot.anzahl);
-            int fontSize = 10;
-            int tw = MeasureText(anzStr.c_str(), fontSize);
-            DrawText(anzStr.c_str(), sx + SLOT_SIZE - tw - 3 + 1,
-                     sy + SLOT_SIZE - fontSize - 2 + 1, fontSize, BLACK);
-            DrawText(anzStr.c_str(), sx + SLOT_SIZE - tw - 3,
-                     sy + SLOT_SIZE - fontSize - 2,     fontSize, WHITE);
+                // Drag & Drop auch im erweiterten Inventar
+                if (mouse.x >= sx && mouse.x <= sx + SLOT_SIZE &&
+                    mouse.y >= sy && mouse.y <= sy + SLOT_SIZE)
+                {
+                    if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+                        if (sp && !sp->itemId.empty()) p.setDragSlot(idx);
+                    }
+                    if (IsMouseButtonReleased(MOUSE_LEFT_BUTTON)) {
+                        int drag = p.getDragSlot();
+                        if (drag >= 0 && drag != idx) p.swapSlots(drag, idx);
+                        p.setDragSlot(-1);
+                    }
+                }
+            }
         }
     }
 }
