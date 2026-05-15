@@ -43,11 +43,9 @@ bool player::hasItem(const std::string& itemId) const {
 
 void player::swapSlots(int a, int b) {
     auto& inv = inventar;
-    // Fülle fehlende Slots mit leeren auf
     while ((int)inv.size() <= std::max(a, b))
         inv.push_back({"", 0});
     std::swap(inv[a], inv[b]);
-    // Leere Slots am Ende entfernen
     while (!inv.empty() && inv.back().itemId.empty())
         inv.pop_back();
 }
@@ -145,21 +143,18 @@ void moovePlayer(player& p) {
         if (item && item->onInventar) item->onInventar();
     }
 
-    // ── onKlick: spezifische Taste ODER Mausklick → aktives Item ──────────
-    // FIX: GetKeyPressed() konsumiert Tasten, daher separat prüfen
+    // ── onKlick: jede Taste ODER jede Maustaste gehalten → aktives Item ───
     if (hand && hand->onKlick) {
-        // Prüfe auf die registrierte Taste für dieses Item
-        bool tasteGedrueckt = false;
-        if (hand->klickTaste != -1) {
-            tasteGedrueckt = IsKeyPressed(hand->klickTaste);
+        bool tasteGehalten = false;
+        for (int k = 32; k <= 348; k++) {
+            if (IsKeyDown(k)) { tasteGehalten = true; break; }
         }
-        
-        // ODER irgendeine Maustaste
-        bool mausGedrueckt = IsMouseButtonPressed(MOUSE_LEFT_BUTTON) ||
-                              IsMouseButtonPressed(MOUSE_RIGHT_BUTTON) ||
-                              IsMouseButtonPressed(MOUSE_MIDDLE_BUTTON);
-        
-        if (tasteGedrueckt || mausGedrueckt) {
+
+        bool mausGehalten = IsMouseButtonDown(MOUSE_LEFT_BUTTON)  ||
+                            IsMouseButtonDown(MOUSE_RIGHT_BUTTON) ||
+                            IsMouseButtonDown(MOUSE_MIDDLE_BUTTON);
+
+        if (tasteGehalten || mausGehalten) {
             hand->onKlick();
         }
     }
@@ -168,13 +163,13 @@ void moovePlayer(player& p) {
     camera.target.x = pos.x;
     camera.target.y = pos.y;
 }
+
 // ── Zeichnen ──────────────────────────────────────────────────────────────────
 
 void DrawPlayer(player& p) {
     Vector2 pos = p.Get_position();
     DrawCircle((int)pos.x, (int)pos.y, 10, ORANGE);
 
-    // Item in der Hand über dem Spieler anzeigen
     Item* hand = p.getHandItem();
     if (hand && hand->textur.id != 0) {
         const int HAND_SIZE = 14;
@@ -196,7 +191,7 @@ static void zeichneSlot(int sx, int sy, int size, const InventarSlot* slot,
              : (slot && !slot->itemId.empty()) ? Color{60, 60, 60, 220}
                                                : Color{40, 40, 40, 180};
 
-    Color border = aktiv        ? Color{255, 215, 0, 255}   // Gold für aktiven Slot
+    Color border = aktiv        ? Color{255, 215, 0, 255}
                  : isDragSource ? Color{255, 180, 0, 200}
                                 : Color{120, 120, 120, 200};
 
@@ -209,7 +204,6 @@ static void zeichneSlot(int sx, int sy, int size, const InventarSlot* slot,
         0.15f, 6, border
     );
 
-    // Aktiv-Highlight: zusätzlicher innerer Rahmen
     if (aktiv) {
         DrawRectangleRoundedLines(
             { (float)(sx+2), (float)(sy+2), (float)(size-4), (float)(size-4) },
@@ -238,7 +232,6 @@ static void zeichneSlot(int sx, int sy, int size, const InventarSlot* slot,
         std::string anzStr = std::to_string(slot->anzahl);
         int fontSize = 10;
         int tw = MeasureText(anzStr.c_str(), fontSize);
-        // Schatten
         DrawText(anzStr.c_str(), sx + size - tw - 3 + 1,
                  sy + size - fontSize - 2 + 1, fontSize, BLACK);
         DrawText(anzStr.c_str(), sx + size - tw - 3,
@@ -262,7 +255,6 @@ void DrawInventar(player& p) {
 
     auto& inv = p.getInventoryMut();
 
-    // ── Hotbar-Hintergrund ──
     DrawRectangleRounded(
         { (float)barX, (float)barY, (float)(BAR_W + 16), (float)BAR_H },
         0.2f, 8, { 20, 20, 20, 200 }
@@ -272,7 +264,6 @@ void DrawInventar(player& p) {
         0.2f, 8, { 180, 180, 180, 220 }
     );
 
-    // Slot-Nummern + Slots zeichnen
     for (int i = 0; i < SLOTS; i++) {
         int sx = barX + 8 + i * (SLOT_SIZE + SLOT_PADDING);
         int sy = barY + 8;
@@ -282,10 +273,9 @@ void DrawInventar(player& p) {
 
         const InventarSlot* slotPtr = (i < (int)inv.size()) ? &inv[i] : nullptr;
         zeichneSlot(sx, sy, SLOT_SIZE, slotPtr, aktiv, isDragSource);
-
     }
 
-    // ── Tooltip: Name des aktiven Items ──
+    // Tooltip
     Item* hand = p.getHandItem();
     if (hand) {
         const char* label = hand->name.c_str();
@@ -297,10 +287,9 @@ void DrawInventar(player& p) {
         DrawText(label, tx,     ty,     fontSize, { 255, 230, 100, 255 });
     }
 
-    // ── Drag & Drop (Maus) ──
+    // Drag & Drop
     Vector2 mouse = GetMousePosition();
 
-    // Slot unter Maus finden
     auto getSlotUnterMaus = [&]() -> int {
         for (int i = 0; i < SLOTS; i++) {
             int sx = barX + 8 + i * (SLOT_SIZE + SLOT_PADDING);
@@ -316,13 +305,10 @@ void DrawInventar(player& p) {
 
     if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         if (slotUnterMaus >= 0) {
-            // Slot auswählen
             p.setAktuellerSlot(slotUnterMaus);
-            // Drag starten (nur wenn Slot belegt)
             if (slotUnterMaus < (int)inv.size() && !inv[slotUnterMaus].itemId.empty()) {
                 p.setDragSlot(slotUnterMaus);
             }
-            // onHand auslösen
             Item* h = p.getHandItem();
             if (h && h->onHand) h->onHand();
         }
@@ -336,7 +322,7 @@ void DrawInventar(player& p) {
         p.setDragSlot(-1);
     }
 
-    // ── Drag-Vorschau: schwebendes Item unter dem Cursor ──
+    // Drag-Vorschau
     if (p.getDragSlot() >= 0 && p.getDragSlot() < (int)inv.size()) {
         const InventarSlot& dragged = inv[p.getDragSlot()];
         Item* dItem = g_itemManager.getItem(dragged.itemId);
@@ -351,14 +337,14 @@ void DrawInventar(player& p) {
         }
     }
 
-    // ── Rechtsklick: Item auf Slot → onKlick ──
+    // Rechtsklick auf Slot
     if (IsMouseButtonPressed(MOUSE_RIGHT_BUTTON) && slotUnterMaus >= 0) {
         p.setAktuellerSlot(slotUnterMaus);
         Item* clicked = p.getHandItem();
         if (clicked && clicked->onKlick) clicked->onKlick();
     }
 
-    // ── Erweitertes Inventar (TAB) ── (Platzhalter-Fenster)
+    // Erweitertes Inventar (TAB)
     if (p.isInventarOffen()) {
         const int COLS    = 5;
         const int ROWS    = 4;
@@ -376,7 +362,6 @@ void DrawInventar(player& p) {
             0.1f, 8, { 200, 200, 200, 200 }
         );
 
-        // Erweiterte Slots (ab Index 10)
         for (int r = 0; r < ROWS; r++) {
             for (int c = 0; c < COLS; c++) {
                 int idx = 10 + r * COLS + c;
@@ -385,7 +370,6 @@ void DrawInventar(player& p) {
                 const InventarSlot* sp = (idx < (int)inv.size()) ? &inv[idx] : nullptr;
                 zeichneSlot(sx, sy, SLOT_SIZE, sp, false, idx == p.getDragSlot());
 
-                // Drag & Drop auch im erweiterten Inventar
                 if (mouse.x >= sx && mouse.x <= sx + SLOT_SIZE &&
                     mouse.y >= sy && mouse.y <= sy + SLOT_SIZE)
                 {
