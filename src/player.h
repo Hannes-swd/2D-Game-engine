@@ -68,4 +68,3 @@ void loadPlayer(player& p);
 void savePlayer(const player& p);
 void moovePlayer(player& p);
 void DrawPlayer(player& p);
-void DrawInventar(player& p);

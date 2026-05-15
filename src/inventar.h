@@ -1,5 +1,9 @@
 #pragma once
 #include "player.h"
 
-// Inventar UI wird in player.cpp via DrawInventar(player& p) gezeichnet.
-// Diese Datei bleibt als Header für eventuelle zusätzliche UI-Funktionen.
+// Zeichnet einen einzelnen Inventar-Slot (intern + extern verwendbar)
+void zeichneSlot(int sx, int sy, int size, const InventarSlot* slot,
+                 bool aktiv, bool isDragSource);
+
+// Zeichnet die gesamte Inventar-UI (Hotbar + erweitertes Inventar)
+void DrawInventar(player& p);

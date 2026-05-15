@@ -7,6 +7,7 @@
 #include "map.h"
 #include "Cam.h"
 #include "player.h"
+#include "inventar.h"
 #include "Items.h"
 
 // ── Item-Callback-Deklarationen (definiert in grasItem.cpp usw.) ──────────────
