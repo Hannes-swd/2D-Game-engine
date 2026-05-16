@@ -56,7 +56,14 @@ int main()
     g_itemManager.scanneUndLadeItems();
 
     // Map laden
-    
+    {
+        namespace fs = std::filesystem;
+        const std::string save    = "assets/json/Map/welt.json";
+        const std::string def     = "assets/json/Map/welt_default.json";
+        if (!fs::exists(save) && fs::exists(def)) {
+            fs::copy_file(def, save);
+        }
+    }
     welt.laden("assets/json/Map/welt.json");
 
     // Spieler laden (lädt auch Inventar aus player.json)
@@ -68,10 +75,22 @@ int main()
     boden.lade_texturen();
     welt.init(boden);
 
+    float speicherTimer = 0.0f;
+    const float SPEICHER_INTERVALL = 30.0f; // alle 30 Sekunden autosave
+
     while (!WindowShouldClose())
     {
+        float delta = GetFrameTime();
         moovePlayer(neuerSpieler);
         kameramoovment();
+
+        // Autosave
+        speicherTimer += delta;
+        if (speicherTimer >= SPEICHER_INTERVALL) {
+            welt.speichern("assets/json/Map/welt.json");
+            savePlayer(neuerSpieler);
+            speicherTimer = 0.0f;
+        }
 
         BeginDrawing();
             ClearBackground(WHITE);
@@ -87,9 +106,9 @@ int main()
         EndDrawing();
     }
 
-    boden.entlade_texturen();
     welt.speichern("assets/json/Map/welt.json");
     savePlayer(neuerSpieler);
+    boden.entlade_texturen();
     CloseWindow();
     return 0;
 }

@@ -1,5 +1,6 @@
 #include <fstream>
 #include <iostream>
+#include <filesystem>
 #include "map.h"
 #include "ground.h"
 #include <nlohmann/json.hpp>
@@ -8,12 +9,7 @@ using json = nlohmann::json;
 
 void Map::setTile(int x, int y, const std::string& typ) {
     std::string key = std::to_string(x) + "," + std::to_string(y);
-    
-    if (!bodenDatenbank || typ == defaultTyp) {
-        tiles.erase(key);
-    } else {
-        tiles[key] = typ;
-    }
+    tiles[key] = typ;
 }
 
 std::string Map::getTile(int x, int y) const {
@@ -35,17 +31,26 @@ void Map::init(const BodenDatenbank& boden) {
 }
 
 void Map::speichern(const std::string& datei) const {
+    namespace fs = std::filesystem;
+    fs::path p(datei);
+    if (p.has_parent_path()) {
+        fs::create_directories(p.parent_path());
+    }
+
     json ausgabe;
-    
+    ausgabe["name"] = "Meine Welt";
     for (const auto& [key, wert] : tiles) {
         ausgabe["tiles"][key] = wert;
     }
     ausgabe["default_typ"] = defaultTyp;
-    
+
     std::ofstream f(datei);
     if (f.is_open()) {
         f << ausgabe.dump(4);
-        std::cout << "Map gespeichert: " << datei << std::endl;
+        f.flush();
+        f.close();
+        std::cout << "Map gespeichert: " << datei
+                  << " (" << tiles.size() << " tiles)" << std::endl;
     } else {
         std::cerr << "Fehler: Kann nicht speichern " << datei << std::endl;
     }
@@ -60,7 +65,6 @@ void Map::laden(const std::string& datei) {
         
         tiles.clear();
         
-        // Lade Tiles
         if (input.contains("tiles")) {
             for (auto& [key, wert] : input["tiles"].items()) {
                 tiles[key] = wert;
@@ -71,7 +75,8 @@ void Map::laden(const std::string& datei) {
             defaultTyp = input["default_typ"];
         }
         
-        std::cout << "Map geladen: " << datei << " (" << tiles.size() << " tiles)" << std::endl;
+        std::cout << "Map geladen: " << datei
+                  << " (" << tiles.size() << " tiles)" << std::endl;
         std::cout << "Default Typ: " << defaultTyp << std::endl;
     } else {
         std::cerr << "Fehler: Kann nicht laden " << datei << std::endl;
@@ -88,13 +93,11 @@ int Map::getSize() const {
 
 void draw_ground(const Map& welt, const BodenDatenbank& boden, int tileSize) {
     for (const auto& [key, typ] : welt.tiles) {
-        // Parse x,y from key (format "x,y")
         size_t commaPos = key.find(',');
         if (commaPos != std::string::npos) {
             int x = std::stoi(key.substr(0, commaPos));
             int y = std::stoi(key.substr(commaPos + 1));
             
-            // Versuche Textur zu zeichnen
             auto it = boden.texturen.find(typ);
             if (it != boden.texturen.end() && it->second.id != 0) {
                 DrawTexture(it->second, x * tileSize, y * tileSize, WHITE);

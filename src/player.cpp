@@ -144,18 +144,22 @@ void moovePlayer(player& p) {
         if (item && item->onInventar) item->onInventar();
     }
 
-    // ── onKlick: jede Taste ODER jede Maustaste gehalten → aktives Item ───
+    // ── onKlick: registrierte Taste ODER linke Maustaste → aktives Item ───
     if (hand && hand->onKlick) {
-        bool tasteGehalten = false;
-        for (int k = 32; k <= 348; k++) {
-            if (IsKeyDown(k)) { tasteGehalten = true; break; }
+        bool ausloesen = false;
+
+        // Wenn eine spezifische Taste registriert ist, nur diese prüfen
+        if (hand->klickTaste >= 0) {
+            ausloesen = IsKeyDown(hand->klickTaste);
         }
 
-        bool mausGehalten = IsMouseButtonDown(MOUSE_LEFT_BUTTON)  ||
-                            IsMouseButtonDown(MOUSE_RIGHT_BUTTON) ||
-                            IsMouseButtonDown(MOUSE_MIDDLE_BUTTON);
+        // Linke Maustaste löst immer aus (für Platzieren/Interaktion)
+        if (IsMouseButtonDown(MOUSE_LEFT_BUTTON) ||
+            IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+            ausloesen = true;
+        }
 
-        if (tasteGehalten || mausGehalten) {
+        if (ausloesen) {
             hand->onKlick();
         }
     }

@@ -31,10 +31,16 @@ foreach(SOURCE_FILE ${SOURCES})
     message(STATUS "  - ${SOURCE_FILE}")
 endforeach()
 
-# ── Assets kopieren ───────────────────────────────────────────────────────────
+# ── Assets beim Configure einmalig kopieren (nur wenn Ziel noch nicht existiert) ──
+# Wird beim ersten cmake .. ausgeführt – danach übernimmt POST_BUILD
 if(EXISTS "${CMAKE_SOURCE_DIR}/assets")
-    file(COPY "${CMAKE_SOURCE_DIR}/assets" DESTINATION "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
-    message(STATUS "Assets -> ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assets")
+    if(NOT EXISTS "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assets")
+        file(COPY "${CMAKE_SOURCE_DIR}/assets"
+             DESTINATION "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+        message(STATUS "Assets (einmalig) -> ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assets")
+    else()
+        message(STATUS "Assets bereits vorhanden, überspringe Configure-Kopie")
+    endif()
 endif()
 
 # ── FetchContent ──────────────────────────────────────────────────────────────
@@ -125,13 +131,18 @@ elseif(UNIX)
     )
 endif()
 
-# Assets nach jedem Build neu kopieren
+# ── POST_BUILD: Assets kopieren, Spielstände schützen ────────────────────────
+# Das externe Script protect_save.cmake übernimmt die Logik:
+#   - Alle Assets werden kopiert (copy_directory)
+#   - welt.json und player.json werden NUR kopiert wenn sie im Ziel noch
+#     nicht existieren → gespeicherte Spielstände bleiben erhalten
 if(EXISTS "${CMAKE_SOURCE_DIR}/assets")
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-            "${CMAKE_SOURCE_DIR}/assets"
-            "$<TARGET_FILE_DIR:${PROJECT_NAME}>/assets"
-        COMMENT "Kopiere Assets..."
+        COMMAND ${CMAKE_COMMAND}
+            -DSRC_ASSETS="${CMAKE_SOURCE_DIR}/assets"
+            -DDST_ASSETS="$<TARGET_FILE_DIR:${PROJECT_NAME}>/assets"
+            -P "${CMAKE_SOURCE_DIR}/cmake/protect_save.cmake"
+        COMMENT "Kopiere Assets (Spielstaende werden geschuetzt)..."
     )
 endif()
 
