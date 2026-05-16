@@ -17,6 +17,7 @@ void grasItemInInventar();
 void grasItemInHand();
 
 using json = nlohmann::json;
+Map welt;
 
 int main()
 {
@@ -55,7 +56,7 @@ int main()
     g_itemManager.scanneUndLadeItems();
 
     // Map laden
-    Map welt;
+    
     welt.laden("assets/json/Map/welt.json");
 
     // Spieler laden (lädt auch Inventar aus player.json)
