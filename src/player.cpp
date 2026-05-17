@@ -158,7 +158,8 @@ void moovePlayer(player& p) {
     }
 
     // ── onKlick: registrierte Taste ODER linke Maustaste → aktives Item ───
-    if (hand && hand->onKlick) {
+    // Kein onKlick wenn die Maus gerade über der Inventar-UI liegt!
+    if (hand && hand->onKlick && !p.isMausAufUI()) {
         bool ausloesen = false;
 
         if (hand->klickTaste >= 0) {

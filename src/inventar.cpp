@@ -79,6 +79,12 @@ void DrawInventar(player& p) {
 
     auto& inv = p.getInventoryMut();
 
+    // ── Maus-über-UI erkennen (vor allem Draw-Aufrufen) ──────────────────────
+    Vector2 mouse = GetMousePosition();
+    bool mausAufHotbar = (mouse.x >= barX && mouse.x <= barX + BAR_W + 16 &&
+                          mouse.y >= barY && mouse.y <= barY + BAR_H);
+    bool mausAufInvGrid = false;
+
     // ── Hotbar-Hintergrund ────────────────────────────────────────────────────
     DrawRectangleRounded(
         { (float)barX, (float)barY, (float)(BAR_W + 16), (float)BAR_H },
@@ -114,7 +120,7 @@ void DrawInventar(player& p) {
     }
 
     // ── Drag & Drop ───────────────────────────────────────────────────────────
-    Vector2 mouse = GetMousePosition();
+    // mouse bereits oben deklariert
 
     auto getSlotUnterMaus = [&]() -> int {
         for (int i = 0; i < SLOTS; i++) {
@@ -179,6 +185,9 @@ void DrawInventar(player& p) {
         int winX = (sw - WIN_W) / 2;
         int winY = (sh - WIN_H) / 2 - 40;
 
+        mausAufInvGrid = (mouse.x >= winX && mouse.x <= winX + WIN_W &&
+                          mouse.y >= winY && mouse.y <= winY + WIN_H);
+
         DrawRectangleRounded(
             { (float)winX, (float)winY, (float)WIN_W, (float)WIN_H },
             0.1f, 8, { 15, 15, 15, 230 }
@@ -211,4 +220,7 @@ void DrawInventar(player& p) {
             }
         }
     }
+
+    // ── UI-Flag aktualisieren (wird von moovePlayer gelesen) ──────────────────
+    p.setMausAufUI(mausAufHotbar || mausAufInvGrid);
 }

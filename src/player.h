@@ -22,6 +22,7 @@ private:
     int  aktuellerSlot  = 0;   // aktuell ausgewählter Hotbar-Slot (0–9)
     int  dragSlot       = -1;  // Slot der gerade gezogen wird (-1 = keiner)
     bool inventarOffen  = false; // erweitertes Inventar offen?
+    bool mausAufUI      = false; // true wenn Maus über Hotbar/Inventar-UI liegt
 
 public:
     void Set_position(int posx, int posy) {
@@ -49,6 +50,8 @@ public:
     void setDragSlot(int s)               { dragSlot = s; }
     bool isInventarOffen() const          { return inventarOffen; }
     void toggleInventar()                 { inventarOffen = !inventarOffen; }
+    bool isMausAufUI() const              { return mausAufUI; }
+    void setMausAufUI(bool b)             { mausAufUI = b; }
 
     // Aktives Item (in der Hand)
     Item* getHandItem() const;

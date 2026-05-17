@@ -1,5 +1,5 @@
 {
-    "aktuellerSlot": 1,
+    "aktuellerSlot": 0,
     "inventory": [
         {
             "anzahl": 10,
@@ -11,6 +11,6 @@
         }
     ],
     "name": "robert",
-    "posX": 15.0,
-    "posY": 58.0
+    "posX": -6.0,
+    "posY": 166.0
 }
