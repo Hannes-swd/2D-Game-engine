@@ -5,5 +5,12 @@
         "onKlick": "grasItemklick" ,
         "inInventar": "grasItemInInventar" ,
         "inHand": "grasItemInHand"
+    },
+    "Beton": {
+        "name": "Beton",
+        "textur": "assets/Images/Map/concrete.png",
+        "onKlick": "BetonItemklick" ,
+        "inInventar": "BetonItemInInventar" ,
+        "inHand": "BetonItemInHand"
     }
 }

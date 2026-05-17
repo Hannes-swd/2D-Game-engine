@@ -6,15 +6,13 @@
 #   DST_ASSETS  – Ziel-Assets-Ordner   (z.B. C:/Projekt/build/bin/Debug/assets)
 #
 # Logik:
-#   1. Alle Assets werden mit copy_directory kopiert
-#      (überschreibt Texturen, JSONs, Configs usw. → immer aktuell)
-#   2. Spielstand-Dateien werden danach WIEDERHERGESTELLT wenn sie
-#      vorher schon existiert haben (Backup-/Restore-Prinzip)
+#   Alle Assets werden in den Build-Ordner kopiert (Texturen, Configs usw.),
+#   damit das Binary sie zur Laufzeit findet (z.B. für Texture-Pfade die
+#   relativ zur .exe aufgelöst werden).
 #
-# Geschützte Spielstand-Dateien:
-#   - assets/json/Map/welt.json
-#   - assets/json/player/player.json
-#   - assets/json/player.json        (alter Pfad, Fallback)
+#   Spielstand-Dateien (welt.json, player.json) werden NICHT mehr kopiert –
+#   das Spiel liest/schreibt diese jetzt direkt im Projektordner über den
+#   zur Compile-Zeit eingebauten ASSETS_PATH.
 
 cmake_minimum_required(VERSION 3.20)
 
@@ -23,43 +21,26 @@ if(NOT DEFINED SRC_ASSETS OR NOT DEFINED DST_ASSETS)
     message(FATAL_ERROR "protect_save.cmake: SRC_ASSETS und DST_ASSETS muessen gesetzt sein!")
 endif()
 
-# ── Liste der zu schützenden Spielstand-Dateien ───────────────────────────────
-# Pfade relativ zu DST_ASSETS
+# ── Spielstand-Dateien aus der Kopie ausschliessen ───────────────────────────
+# Diese werden vom Spiel direkt im Projektordner (SRC_ASSETS) verwaltet.
 set(SAVE_FILES
     "json/Map/welt.json"
     "json/player/player.json"
     "json/player.json"
 )
 
-# ── Schritt 1: Spielstände sichern (in Memory – als CMake-Variablen) ──────────
-# Wir merken uns welche Dateien existiert haben und lesen ihren Inhalt
-foreach(SAVE_FILE ${SAVE_FILES})
-    set(DST_PATH "${DST_ASSETS}/${SAVE_FILE}")
-    if(EXISTS "${DST_PATH}")
-        file(READ "${DST_PATH}" SAVE_CONTENT_${SAVE_FILE})
-        set(SAVE_EXISTS_${SAVE_FILE} TRUE)
-        message(STATUS "[protect_save] Sichere: ${SAVE_FILE}")
-    else()
-        set(SAVE_EXISTS_${SAVE_FILE} FALSE)
-    endif()
-endforeach()
-
-# ── Schritt 2: Alle Assets kopieren (überschreibt alles) ─────────────────────
+# ── Schritt 1: Alle Assets in den Build-Ordner kopieren ──────────────────────
 message(STATUS "[protect_save] Kopiere Assets: ${SRC_ASSETS} -> ${DST_ASSETS}")
 file(COPY "${SRC_ASSETS}/" DESTINATION "${DST_ASSETS}")
 
-# ── Schritt 3: Spielstände wiederherstellen ───────────────────────────────────
+# ── Schritt 2: Spielstand-Dateien aus dem Build-Ordner wieder loeschen ───────
+# Sie wurden gerade mitgekopiert – wir entfernen sie damit nicht
+# aus Versehen ein alter Build-Stand die Quelldateien ueberschreibt.
 foreach(SAVE_FILE ${SAVE_FILES})
-    if(SAVE_EXISTS_${SAVE_FILE})
-        set(DST_PATH "${DST_ASSETS}/${SAVE_FILE}")
-        # Verzeichnis anlegen falls nötig
-        get_filename_component(DST_DIR "${DST_PATH}" DIRECTORY)
-        file(MAKE_DIRECTORY "${DST_DIR}")
-        # Gespeicherten Inhalt zurückschreiben
-        file(WRITE "${DST_PATH}" "${SAVE_CONTENT_${SAVE_FILE}}")
-        message(STATUS "[protect_save] Wiederhergestellt: ${SAVE_FILE}")
-    else()
-        message(STATUS "[protect_save] Neu angelegt (kein alter Stand): ${SAVE_FILE}")
+    set(DST_PATH "${DST_ASSETS}/${SAVE_FILE}")
+    if(EXISTS "${DST_PATH}")
+        file(REMOVE "${DST_PATH}")
+        message(STATUS "[protect_save] Entfernt aus Build (liegt im Projekt): ${SAVE_FILE}")
     endif()
 endforeach()
 

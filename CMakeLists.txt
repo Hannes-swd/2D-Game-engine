@@ -31,18 +31,6 @@ foreach(SOURCE_FILE ${SOURCES})
     message(STATUS "  - ${SOURCE_FILE}")
 endforeach()
 
-# ── Assets beim Configure einmalig kopieren (nur wenn Ziel noch nicht existiert) ──
-# Wird beim ersten cmake .. ausgeführt – danach übernimmt POST_BUILD
-if(EXISTS "${CMAKE_SOURCE_DIR}/assets")
-    if(NOT EXISTS "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assets")
-        file(COPY "${CMAKE_SOURCE_DIR}/assets"
-             DESTINATION "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
-        message(STATUS "Assets (einmalig) -> ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assets")
-    else()
-        message(STATUS "Assets bereits vorhanden, überspringe Configure-Kopie")
-    endif()
-endif()
-
 # ── FetchContent ──────────────────────────────────────────────────────────────
 include(FetchContent)
 
@@ -99,10 +87,18 @@ target_link_libraries(imgui_lib PUBLIC raylib)
 add_executable(${PROJECT_NAME} ${SOURCES})
 
 target_include_directories(${PROJECT_NAME} PRIVATE
-    ${CMAKE_SOURCE_DIR}/src      # alle Header in src/
-    ${CMAKE_SOURCE_DIR}/items    # items können src-Header finden
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/items
     ${imgui_SOURCE_DIR}
     ${rlimgui_SOURCE_DIR}
+)
+
+# ── ASSETS_PATH: immer auf den assets/-Ordner im Projektverzeichnis zeigen ───
+# Egal ob Debug/Release/aus dem Build-Ordner gestartet – der Pfad stimmt immer.
+# Für einen echten Release-Build diesen Define einfach weglassen und die
+# Assets neben die .exe kopieren (Fallback "assets" greift dann).
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+    ASSETS_PATH="${CMAKE_SOURCE_DIR}/assets"
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
@@ -113,7 +109,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 
 if(WIN32)
     target_link_libraries(${PROJECT_NAME} PRIVATE winmm)
-    # NOGDI/VC_EXTRALEAN NUR für eigenes Target, nicht für raylib
     target_compile_definitions(${PROJECT_NAME} PRIVATE
         NOGDI
         VC_EXTRALEAN
@@ -131,21 +126,7 @@ elseif(UNIX)
     )
 endif()
 
-# ── POST_BUILD: Assets kopieren, Spielstände schützen ────────────────────────
-# Das externe Script protect_save.cmake übernimmt die Logik:
-#   - Alle Assets werden kopiert (copy_directory)
-#   - welt.json und player.json werden NUR kopiert wenn sie im Ziel noch
-#     nicht existieren → gespeicherte Spielstände bleiben erhalten
-if(EXISTS "${CMAKE_SOURCE_DIR}/assets")
-    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-        COMMAND ${CMAKE_COMMAND}
-            -DSRC_ASSETS="${CMAKE_SOURCE_DIR}/assets"
-            -DDST_ASSETS="$<TARGET_FILE_DIR:${PROJECT_NAME}>/assets"
-            -P "${CMAKE_SOURCE_DIR}/cmake/protect_save.cmake"
-        COMMENT "Kopiere Assets (Spielstaende werden geschuetzt)..."
-    )
-endif()
-
 message(STATUS "=== 2DGameEngine Konfiguration ===")
-message(STATUS "Build-Dir: ${CMAKE_BINARY_DIR}")
-message(STATUS "Bin-Dir:   ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+message(STATUS "Build-Dir:   ${CMAKE_BINARY_DIR}")
+message(STATUS "Bin-Dir:     ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+message(STATUS "Assets-Dir:  ${CMAKE_SOURCE_DIR}/assets")

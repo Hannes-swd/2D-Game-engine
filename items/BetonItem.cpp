@@ -1,26 +1,23 @@
 #include "item_registry.h"
 #include "map.h"
 #include "Mouse tile.h"
-
-
 extern Map welt;
 
 // ── Automatische Registrierung ────────────────────────────────────────────────
-// Einfach hier eintragen – kein main.cpp anfassen nötig!
-REGISTER_ITEM_FUNC_MIT_TASTE(grasItemklick,    KEY_E);
-REGISTER_ITEM_FUNC(grasItemInInventar);
-REGISTER_ITEM_FUNC(grasItemInHand);
+REGISTER_ITEM_FUNC_MIT_TASTE(BetonItemklick,    KEY_E);
+REGISTER_ITEM_FUNC(BetonItemInInventar);
+REGISTER_ITEM_FUNC(BetonItemInHand);
 
 // ── Implementierungen ─────────────────────────────────────────────────────────
-void grasItemklick() {
+void BetonItemklick() {
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
         Vector2 Mousepos = getTileMousePos(32);
-        welt.setTile((int)Mousepos.x, (int)Mousepos.y, "gras");
+        welt.setTile((int)Mousepos.x, (int)Mousepos.y, "concrete");
     }
 }
 
-void grasItemInInventar() {
+void BetonItemInInventar() {
 }
 
-void grasItemInHand() {
+void BetonItemInHand() {
 }

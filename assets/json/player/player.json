@@ -1,8 +1,16 @@
 {
-    "posX": 0,
-    "posY": 0,
+    "aktuellerSlot": 1,
     "inventory": [
-        {"id": "grasItem", "anzahl": 10}
+        {
+            "anzahl": 10,
+            "id": "grasItem"
+        },
+        {
+            "anzahl": 30,
+            "id": "Beton"
+        }
     ],
-    "name": "robert"
+    "name": "robert",
+    "posX": 15.0,
+    "posY": 58.0
 }

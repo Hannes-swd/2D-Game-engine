@@ -6,6 +6,9 @@
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
+// ── Asset-Pfad-Helper (definiert in main.cpp) ─────────────────────────────────
+extern std::string assetPfad(const std::string& relativ);
+
 // ── Inventory-Methoden ────────────────────────────────────────────────────────
 
 Item* player::getHandItem() const {
@@ -54,11 +57,12 @@ void player::swapSlots(int a, int b) {
 // ── Speichern / Laden ─────────────────────────────────────────────────────────
 
 void loadPlayer(player& p) {
-    std::ifstream f("assets/json/player/player.json");
-    if (!f.is_open()) f.open("assets/json/player.json");
+    // Liest immer aus dem Projektordner (via assetPfad)
+    std::string pfad = assetPfad("json/player/player.json");
+    std::ifstream f(pfad);
 
     if (f.is_open()) {
-        std::cout << "[loadPlayer] player.json gefunden" << std::endl;
+        std::cout << "[loadPlayer] Lade: " << pfad << std::endl;
         json data;
         f >> data;
         p.Set_position(data.value("posX", 0), data.value("posY", 0));
@@ -71,10 +75,11 @@ void loadPlayer(player& p) {
                 int         anz = slot.value("anzahl", 1);
                 if (!id.empty())
                     p.addToInventory(id, anz);
+                std::cout << "[loadPlayer] Slot: " << id << " x" << anz << std::endl;
             }
         }
     } else {
-        std::cout << "[loadPlayer] player.json NICHT gefunden -> Fallback" << std::endl;
+        std::cout << "[loadPlayer] Nicht gefunden -> Fallback (" << pfad << ")" << std::endl;
         p.Set_position(0, 0);
         p.Change_Name("Spieler");
     }
@@ -84,10 +89,10 @@ void loadPlayer(player& p) {
 
 void savePlayer(const player& p) {
     json data;
-    Vector2 pos        = p.Get_position();
-    data["posX"]       = pos.x;
-    data["posY"]       = pos.y;
-    data["name"]       = p.Get_Name();
+    Vector2 pos           = p.Get_position();
+    data["posX"]          = pos.x;
+    data["posY"]          = pos.y;
+    data["name"]          = p.Get_Name();
     data["aktuellerSlot"] = p.getAktuellerSlot();
 
     json inventarArray = json::array();
@@ -99,10 +104,18 @@ void savePlayer(const player& p) {
     }
     data["inventory"] = inventarArray;
 
-    std::ofstream f("assets/json/player/player.json");
-    if (!f.is_open()) f.open("assets/json/player.json");
-    if (f.is_open())
+    // Ordner anlegen falls er noch nicht existiert
+    namespace fs = std::filesystem;
+    std::string pfad = assetPfad("json/player/player.json");
+    fs::create_directories(fs::path(pfad).parent_path());
+
+    std::ofstream f(pfad);
+    if (f.is_open()) {
         f << data.dump(4);
+        std::cout << "[savePlayer] Gespeichert: " << pfad << std::endl;
+    } else {
+        std::cerr << "[savePlayer] FEHLER: Kann nicht schreiben: " << pfad << std::endl;
+    }
 }
 
 // ── Bewegung ──────────────────────────────────────────────────────────────────
@@ -148,12 +161,10 @@ void moovePlayer(player& p) {
     if (hand && hand->onKlick) {
         bool ausloesen = false;
 
-        // Wenn eine spezifische Taste registriert ist, nur diese prüfen
         if (hand->klickTaste >= 0) {
             ausloesen = IsKeyDown(hand->klickTaste);
         }
 
-        // Linke Maustaste löst immer aus (für Platzieren/Interaktion)
         if (IsMouseButtonDown(MOUSE_LEFT_BUTTON) ||
             IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
             ausloesen = true;

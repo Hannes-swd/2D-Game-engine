@@ -40,10 +40,6 @@ struct Item {
 class ItemManager {
 private:
     std::unordered_map<std::string, std::unique_ptr<Item>> items;
-
-    // ── Funktions-Registry ────────────────────────────────────────────────────
-    // Hier werden C++-Funktionen unter ihrem JSON-Namen gespeichert.
-    // Eintrag über registriereFunktion() BEVOR scanneUndLadeItems() läuft.
     std::unordered_map<std::string, std::function<void()>> funktionsRegistry;
 
 public:
@@ -53,46 +49,39 @@ public:
         }
     }
 
-    // Registriert eine C++-Funktion unter einem Namen (wie er in der JSON steht)
+    struct FuncEintrag {
+        std::function<void()> fn;
+        int taste = -1;
+    };
+    std::unordered_map<std::string, FuncEintrag> funktionsRegistryEx;
+
+    // Registriert eine Funktion ohne Taste (onHand, onInventar, onUpdate)
     void registriereFunktion(const std::string& name, std::function<void()> fn) {
         funktionsRegistry[name] = fn;
     }
 
-    // Wie registriereFunktion, setzt zusätzlich die Taste für onKlick.
-    // taste: ein Raylib KeyboardKey, z.B. KEY_E, KEY_F, KEY_SPACE usw.
-    // Wird in Items.cpp beim Binden von "onKlick" automatisch übernommen.
-    struct FuncEintrag {
-        std::function<void()> fn;
-        int taste = -1;   // -1 = keine Taste
-    };
-    std::unordered_map<std::string, FuncEintrag> funktionsRegistryEx;
-
+    // Registriert eine Funktion MIT Taste (onKlick)
     void registriereFunktionMitTaste(const std::string& name,
                                       std::function<void()> fn,
                                       int taste) {
         funktionsRegistryEx[name] = { fn, taste };
-        funktionsRegistry[name]   = fn;   // auch im alten Registry für onHand/onInventar
+        funktionsRegistry[name]   = fn;
     }
 
-    // Sucht eine Funktion in der Registry; gibt nullptr zurück wenn nicht gefunden
     std::function<void()> sucheFunc(const std::string& name) const {
         auto it = funktionsRegistry.find(name);
         if (it != funktionsRegistry.end()) return it->second;
         return nullptr;
     }
 
-    // Gibt die registrierte Taste zurück (-1 wenn keine)
     int sucheTaste(const std::string& name) const {
         auto it = funktionsRegistryEx.find(name);
         if (it != funktionsRegistryEx.end()) return it->second.taste;
         return -1;
     }
 
-    // Fügt ein fertiges Item direkt ein (für manuelles Laden aus main.cpp)
     void registriereItem(std::unique_ptr<Item> item) {
-        if (item) {
-            items[item->id] = std::move(item);
-        }
+        if (item) items[item->id] = std::move(item);
     }
 
     void scanneUndLadeItems();
@@ -113,16 +102,21 @@ public:
     }
 
     void zeichne(Item* item, int x, int y) {
-        if (item && item->textur.id != 0) {
+        if (item && item->textur.id != 0)
             DrawTexture(item->textur, x, y, WHITE);
-        }
     }
 
     void updateAlleItems() {
-        for (auto& [id, item] : items) {
+        for (auto& [id, item] : items)
             if (item->onUpdate) item->onUpdate();
-        }
     }
 };
 
-extern ItemManager g_itemManager;
+// ── Singleton – eine einzige Instanz im gesamten Programm ────────────────────
+inline ItemManager& getItemManager() {
+    static ItemManager instance;
+    return instance;
+}
+
+// g_itemManager als Abkürzung – überall nutzbar, kein "extern" nötig
+#define g_itemManager getItemManager()

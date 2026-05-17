@@ -6,7 +6,8 @@
 
 using json = nlohmann::json;
 
-ItemManager g_itemManager;
+// ── Asset-Pfad-Helper (definiert in main.cpp) ─────────────────────────────────
+extern std::string assetPfad(const std::string& relativ);
 
 // ── Hilfsfunktion: verbindet einen JSON-Funktionsnamen mit der Registry ───────
 static void bindFunc(std::function<void()>& target,
@@ -28,7 +29,6 @@ static void bindFunc(std::function<void()>& target,
     }
 }
 
-// Wie bindFunc, setzt zusätzlich item->klickTaste aus der Registry
 static void bindKlick(Item& item, const json& data, const std::string& jsonKey)
 {
     if (!data.contains(jsonKey)) return;
@@ -37,7 +37,7 @@ static void bindKlick(Item& item, const json& data, const std::string& jsonKey)
 
     auto fn = g_itemManager.sucheFunc(funcName);
     if (fn) {
-        item.onKlick   = fn;
+        item.onKlick    = fn;
         item.klickTaste = g_itemManager.sucheTaste(funcName);
         std::cout << "[ItemManager] onKlick gebunden: " << funcName
                   << "  Taste=" << item.klickTaste << std::endl;
@@ -68,13 +68,7 @@ static void ladeItemsAusJson(const std::string& pfad,
         item->dateiPfad  = pfad;
         item->ladenTextur();
 
-        // ── Callbacks aus JSON-Namen über die Registry binden ──────────────
-        // JSON-Key   → Item-Callback
-        // "onKlick"  → item->onKlick     (alter Key-Name in JSON: "onKlick")
-        // "inInventar"→ item->onInventar  (JSON nennt es "inInventar")
-        // "inHand"   → item->onHand       (JSON nennt es "inHand")
-        // "onUpdate" → item->onUpdate
-        bindKlick(*item,        itemData, "onKlick");
+        bindKlick(*item,           itemData, "onKlick");
         bindFunc(item->onInventar, itemData, "inInventar");
         bindFunc(item->onHand,     itemData, "inHand");
         bindFunc(item->onUpdate,   itemData, "onUpdate");
@@ -87,22 +81,22 @@ static void ladeItemsAusJson(const std::string& pfad,
 void ItemManager::scanneUndLadeItems() {
     namespace fs = std::filesystem;
 
-    // 1. Neue Struktur: assets/json/items/item.json
-    const std::string neuPfad = "assets/json/items/item.json";
+    // Haupt-Item-Datei
+    const std::string neuPfad = assetPfad("json/items/item.json");
     if (fs::exists(neuPfad)) {
         std::cout << "[ItemManager] Lade: " << neuPfad << std::endl;
         ladeItemsAusJson(neuPfad, items);
     }
 
-    // 2. Alter Fallback-Pfad: assets/json/item.json
-    const std::string altPfad = "assets/json/item.json";
+    // Fallback (alter Pfad)
+    const std::string altPfad = assetPfad("json/item.json");
     if (fs::exists(altPfad)) {
         std::cout << "[ItemManager] Lade (Fallback): " << altPfad << std::endl;
         ladeItemsAusJson(altPfad, items);
     }
 
-    // 3. Zusätzlich alle weiteren .json im items-Ordner scannen
-    const std::string ordner = "assets/json/items/";
+    // Alle weiteren JSON-Dateien im items/-Unterordner
+    const std::string ordner = assetPfad("json/items/");
     if (fs::exists(ordner)) {
         for (const auto& entry : fs::recursive_directory_iterator(ordner)) {
             if (entry.path().extension() == ".json") {
