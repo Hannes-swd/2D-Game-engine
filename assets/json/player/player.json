@@ -1,5 +1,6 @@
 {
-    "aktuellerSlot": 0,
+    "aktuellerSlot": 1,
+    "bauModus": false,
     "inventory": [
         {
             "anzahl": 10,
@@ -11,6 +12,6 @@
         }
     ],
     "name": "robert",
-    "posX": -6.0,
-    "posY": 166.0
+    "posX": 88.64885711669922,
+    "posY": 118.34085083007813
 }
