@@ -35,7 +35,10 @@ void BodenDatenbank::lade_texturen() {
         if (!pfad.empty()) {
             Texture2D tex = LoadTexture(pfad.c_str());
             texturen[typ] = tex;
-            std::cout << "Textur geladen: " << pfad << " für " << typ << std::endl;
+            if (tex.id == 0)
+                std::cerr << "[Boden] FEHLER: Textur nicht geladen: " << pfad << std::endl;
+            else
+                std::cout << "[Boden] Textur geladen: " << pfad << std::endl;
         }
     }
 }

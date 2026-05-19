@@ -81,21 +81,18 @@ static void ladeItemsAusJson(const std::string& pfad,
 void ItemManager::scanneUndLadeItems() {
     namespace fs = std::filesystem;
 
-    // Haupt-Item-Datei
     const std::string neuPfad = assetPfad("json/items/item.json");
     if (fs::exists(neuPfad)) {
         std::cout << "[ItemManager] Lade: " << neuPfad << std::endl;
         ladeItemsAusJson(neuPfad, items);
     }
 
-    // Fallback (alter Pfad)
     const std::string altPfad = assetPfad("json/item.json");
     if (fs::exists(altPfad)) {
         std::cout << "[ItemManager] Lade (Fallback): " << altPfad << std::endl;
         ladeItemsAusJson(altPfad, items);
     }
 
-    // Alle weiteren JSON-Dateien im items/-Unterordner
     const std::string ordner = assetPfad("json/items/");
     if (fs::exists(ordner)) {
         for (const auto& entry : fs::recursive_directory_iterator(ordner)) {

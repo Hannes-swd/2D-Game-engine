@@ -13,17 +13,10 @@
 
 using json = nlohmann::json;
 
-// ── Asset-Pfad-Helper ─────────────────────────────────────────────────────────
-// ASSETS_PATH wird von CMake als absoluter Pfad zum assets/-Ordner
-// im Projektverzeichnis eingebaut. So liest/schreibt das Spiel immer
-// dort, egal aus welchem Verzeichnis das Binary gestartet wird.
-// Für Release-Builds (ohne Define) fällt es auf "assets" neben der .exe zurück.
 #ifndef ASSETS_PATH
     #define ASSETS_PATH "assets"
 #endif
 
-// Baut einen vollständigen Pfad: assetPfad("json/Map/welt.json")
-// → "<Projektordner>/assets/json/Map/welt.json"
 std::string assetPfad(const std::string& relativ) {
     return std::string(ASSETS_PATH) + "/" + relativ;
 }
@@ -35,6 +28,17 @@ int main()
     int screenWidth  = 1280;
     int screenHeight = 720;
     int TILE_SIZE    = 32;
+
+    // ── Working Directory auf den Projektordner setzen ────────────────────────
+    // Damit funktionieren alle relativen Pfade in JSON-Dateien (Texturen etc.)
+    // unabhängig davon, aus welchem Verzeichnis das Binary gestartet wird.
+    {
+        namespace fs = std::filesystem;
+        fs::path assetsDir = fs::path(ASSETS_PATH).parent_path();
+        if (!assetsDir.empty() && fs::exists(assetsDir)) {
+            ChangeDirectory(assetsDir.string().c_str());
+        }
+    }
 
     InitWindow(screenWidth, screenHeight, "2D Game Engine");
     SetWindowState(FLAG_WINDOW_RESIZABLE);
@@ -53,9 +57,6 @@ int main()
     player neuerSpieler;
     initCamera();
 
-    // ── Items laden ───────────────────────────────────────────────────────────
-    // Callbacks wurden bereits automatisch registriert (via REGISTER_ITEM_FUNC
-    // in den jeweiligen Item-.cpp Dateien) – hier nichts mehr manuell eintragen!
     g_itemManager.scanneUndLadeItems();
 
     // ── Map laden ─────────────────────────────────────────────────────────────
