@@ -6,13 +6,18 @@
         "-1,1": "gras",
         "-1,2": "gras",
         "-1,3": "gras",
+<<<<<<< HEAD
         "-1,5": "gras",
+=======
+        "-1,4": "gras",
+>>>>>>> c340ca57c4e3fd90940c015aa88216b6239216a6
         "-2,-2": "gras",
         "-2,0": "concrete",
         "-2,1": "gras",
         "-2,2": "gras",
         "-2,3": "gras",
         "-2,4": "gras",
+        "-3,2": "concrete",
         "-3,3": "gras",
         "-3,4": "gras",
         "-4,3": "gras",
@@ -20,9 +25,13 @@
         "0,1": "concrete",
         "0,2": "concrete",
         "0,3": "concrete",
+<<<<<<< HEAD
         "0,5": "concrete",
         "0,6": "gras",
         "1,-1": "concrete",
+=======
+        "0,4": "gras",
+>>>>>>> c340ca57c4e3fd90940c015aa88216b6239216a6
         "1,0": "concrete",
         "1,1": "gras",
         "1,2": "gras",
@@ -35,6 +44,7 @@
         "3,0": "gras",
         "3,1": "gras",
         "3,2": "concrete",
-        "3,3": "gras"
+        "3,3": "gras",
+        "3,4": "concrete"
     }
 }

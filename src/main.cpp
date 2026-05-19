@@ -10,6 +10,7 @@
 #include "player.h"
 #include "inventar.h"
 #include "Items.h"
+#include "Mouse tile.h"
 
 using json = nlohmann::json;
 
@@ -22,6 +23,7 @@ std::string assetPfad(const std::string& relativ) {
 }
 
 Map welt;
+player* g_spieler = nullptr; // globaler Spieler-Pointer für Item-Callbacks
 
 int main()
 {
@@ -55,6 +57,7 @@ int main()
     }
 
     player neuerSpieler;
+    g_spieler = &neuerSpieler;
     initCamera();
 
     g_itemManager.scanneUndLadeItems();
@@ -96,9 +99,11 @@ int main()
             ClearBackground(WHITE);
             BeginMode2D(camera);
                 draw_ground(welt, boden, TILE_SIZE);
+                DrawBauModusGrid(neuerSpieler, TILE_SIZE); // Baumodus-Raster (World-Space)
                 DrawPlayer(neuerSpieler);
             EndMode2D();
             DrawInventar(neuerSpieler);
+            DrawBauModusHUD(neuerSpieler); // Baumodus-HUD (Screen-Space)
         EndDrawing();
     }
 

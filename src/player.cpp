@@ -68,6 +68,7 @@ void loadPlayer(player& p) {
         p.Set_position(data.value("posX", 0), data.value("posY", 0));
         p.Change_Name(data.value("name", std::string("Spieler")));
         p.setAktuellerSlot(data.value("aktuellerSlot", 0));
+        p.setBauModus(data.value("bauModus", false));
 
         if (data.contains("inventory") && data["inventory"].is_array()) {
             for (const auto& slot : data["inventory"]) {
@@ -94,6 +95,7 @@ void savePlayer(const player& p) {
     data["posY"]          = pos.y;
     data["name"]          = p.Get_Name();
     data["aktuellerSlot"] = p.getAktuellerSlot();
+    data["bauModus"]      = p.isBauModus();
 
     json inventarArray = json::array();
     for (const auto& slot : p.getInventory()) {
@@ -145,6 +147,9 @@ void moovePlayer(player& p) {
 
     // Tab: Inventar öffnen/schließen
     if (IsKeyPressed(KEY_TAB)) p.toggleInventar();
+
+    // B: Baumodus umschalten
+    if (IsKeyPressed(KEY_B)) p.toggleBauModus();
 
     // ── onHand: jeden Frame für das aktive Item ────────────────────────────
     Item* hand = p.getHandItem();

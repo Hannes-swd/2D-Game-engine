@@ -23,6 +23,7 @@ private:
     int  dragSlot       = -1;  // Slot der gerade gezogen wird (-1 = keiner)
     bool inventarOffen  = false; // erweitertes Inventar offen?
     bool mausAufUI      = false; // true wenn Maus über Hotbar/Inventar-UI liegt
+    bool bauModus       = false; // Baumodus: zeigt Raster + Platzierungs-Vorschau
 
 public:
     void Set_position(int posx, int posy) {
@@ -45,13 +46,20 @@ public:
 
     // Slot-Steuerung
     int  getAktuellerSlot() const         { return aktuellerSlot; }
-    void setAktuellerSlot(int s)          { aktuellerSlot = (s < 0) ? 0 : (s > 9 ? 9 : s); }
+    void setAktuellerSlot(int s)          {
+        int neu = (s < 0) ? 0 : (s > 9 ? 9 : s);
+        if (neu != aktuellerSlot) bauModus = false; // Baumodus aus beim Slot-Wechsel
+        aktuellerSlot = neu;
+    }
     int  getDragSlot() const              { return dragSlot; }
     void setDragSlot(int s)               { dragSlot = s; }
     bool isInventarOffen() const          { return inventarOffen; }
     void toggleInventar()                 { inventarOffen = !inventarOffen; }
     bool isMausAufUI() const              { return mausAufUI; }
     void setMausAufUI(bool b)             { mausAufUI = b; }
+    bool isBauModus() const               { return bauModus; }
+    void setBauModus(bool b)              { bauModus = b; }
+    void toggleBauModus()                 { bauModus = !bauModus; }
 
     // Aktives Item (in der Hand)
     Item* getHandItem() const;
