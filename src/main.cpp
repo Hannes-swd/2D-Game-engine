@@ -23,7 +23,7 @@ std::string assetPfad(const std::string& relativ) {
 }
 
 Map welt;
-player* g_spieler = nullptr; // globaler Spieler-Pointer für Item-Callbacks
+player* g_spieler = nullptr;
 
 int main()
 {
@@ -32,8 +32,6 @@ int main()
     int TILE_SIZE    = 32;
 
     // ── Working Directory auf den Projektordner setzen ────────────────────────
-    // Damit funktionieren alle relativen Pfade in JSON-Dateien (Texturen etc.)
-    // unabhängig davon, aus welchem Verzeichnis das Binary gestartet wird.
     {
         namespace fs = std::filesystem;
         fs::path assetsDir = fs::path(ASSETS_PATH).parent_path();
@@ -46,13 +44,17 @@ int main()
     SetWindowState(FLAG_WINDOW_RESIZABLE);
     SetTargetFPS(60);
 
-    // config.json laden
+    // config.json laden – try/catch damit schlechte JSON nicht abort() ausloest
     {
         std::ifstream configFile(assetPfad("config.json"));
         if (configFile.is_open()) {
-            json config = json::parse(configFile);
-            SetWindowTitle(config.value("title", std::string("2D Game Engine")).c_str());
-            SetTargetFPS(config.value("fps", 60));
+            try {
+                json config = json::parse(configFile);
+                SetWindowTitle(config.value("title", std::string("2D Game Engine")).c_str());
+                SetTargetFPS(config.value("fps", 60));
+            } catch (const std::exception& e) {
+                std::cerr << "[Config] JSON Fehler: " << e.what() << " – Standardwerte werden verwendet." << std::endl;
+            }
         }
     }
 
@@ -99,11 +101,11 @@ int main()
             ClearBackground(WHITE);
             BeginMode2D(camera);
                 draw_ground(welt, boden, TILE_SIZE);
-                DrawBauModusGrid(neuerSpieler, TILE_SIZE); // Baumodus-Raster (World-Space)
+                DrawBauModusGrid(neuerSpieler, TILE_SIZE);
                 DrawPlayer(neuerSpieler);
             EndMode2D();
             DrawInventar(neuerSpieler);
-            DrawBauModusHUD(neuerSpieler); // Baumodus-HUD (Screen-Space)
+            DrawBauModusHUD(neuerSpieler);
         EndDrawing();
     }
 

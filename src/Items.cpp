@@ -6,10 +6,26 @@
 
 using json = nlohmann::json;
 
-// ── Asset-Pfad-Helper (definiert in main.cpp) ─────────────────────────────────
+// Asset-Pfad-Helper (definiert in main.cpp)
 extern std::string assetPfad(const std::string& relativ);
 
-// ── Hilfsfunktion: verbindet einen JSON-Funktionsnamen mit der Registry ───────
+// Normalisiert einen Texturpfad: absoluter Pfad vom alten Geraet → relativer Pfad
+// Gleiche Logik wie in ground.cpp
+static std::string normalisierePfad(const std::string& roherPfad) {
+    for (const std::string& sep : { "assets/", "assets\\" }) {
+        size_t pos = roherPfad.rfind(sep);
+        if (pos != std::string::npos) {
+            std::string rest = roherPfad.substr(pos + sep.size());
+            for (char& c : rest) if (c == '\\') c = '/';
+            return rest;
+        }
+    }
+    std::string result = roherPfad;
+    for (char& c : result) if (c == '\\') c = '/';
+    return result;
+}
+
+// Verbindet einen JSON-Funktionsnamen mit der Registry
 static void bindFunc(std::function<void()>& target,
                      const json& data,
                      const std::string& jsonKey)
@@ -47,25 +63,37 @@ static void bindKlick(Item& item, const json& data, const std::string& jsonKey)
     }
 }
 
-// ── Lädt alle Items aus einer einzelnen JSON-Datei ────────────────────────────
+// Laedt alle Items aus einer einzelnen JSON-Datei
 static void ladeItemsAusJson(const std::string& pfad,
                               std::unordered_map<std::string, std::unique_ptr<Item>>& items)
 {
     std::ifstream f(pfad);
     if (!f.is_open()) {
-        std::cerr << "[ItemManager] Kann nicht öffnen: " << pfad << std::endl;
+        std::cerr << "[ItemManager] Kann nicht oeffnen: " << pfad << std::endl;
         return;
     }
 
     json data;
-    f >> data;
+    try {
+        f >> data;
+    } catch (const std::exception& e) {
+        std::cerr << "[ItemManager] JSON Fehler in " << pfad << ": " << e.what() << std::endl;
+        return;
+    }
 
     for (auto& [id, itemData] : data.items()) {
-        auto item        = std::make_unique<Item>();
-        item->id         = id;
-        item->name       = itemData.value("name",   id);
-        item->texturPfad = itemData.value("textur", "");
-        item->dateiPfad  = pfad;
+        auto item  = std::make_unique<Item>();
+        item->id   = id;
+        item->name = itemData.value("name", id);
+
+        // Texturpfad normalisieren (absolut → relativ)
+        std::string roherPfad = itemData.value("textur", "");
+        if (!roherPfad.empty()) {
+            std::string relPfad  = normalisierePfad(roherPfad);
+            item->texturPfad     = assetPfad(relPfad);
+        }
+
+        item->dateiPfad = pfad;
         item->ladenTextur();
 
         bindKlick(*item,           itemData, "onKlick");

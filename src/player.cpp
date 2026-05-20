@@ -3,10 +3,11 @@
 #include "Cam.h"
 #include <fstream>
 #include <iostream>
+#include <filesystem>
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
-// ── Asset-Pfad-Helper (definiert in main.cpp) ─────────────────────────────────
+// Asset-Pfad-Helper (definiert in main.cpp)
 extern std::string assetPfad(const std::string& relativ);
 
 // ── Inventory-Methoden ────────────────────────────────────────────────────────
@@ -57,27 +58,32 @@ void player::swapSlots(int a, int b) {
 // ── Speichern / Laden ─────────────────────────────────────────────────────────
 
 void loadPlayer(player& p) {
-    // Liest immer aus dem Projektordner (via assetPfad)
     std::string pfad = assetPfad("json/player/player.json");
     std::ifstream f(pfad);
 
     if (f.is_open()) {
         std::cout << "[loadPlayer] Lade: " << pfad << std::endl;
-        json data;
-        f >> data;
-        p.Set_position(data.value("posX", 0), data.value("posY", 0));
-        p.Change_Name(data.value("name", std::string("Spieler")));
-        p.setAktuellerSlot(data.value("aktuellerSlot", 0));
-        p.setBauModus(data.value("bauModus", false));
+        try {
+            json data;
+            f >> data;
+            p.Set_position(data.value("posX", 0), data.value("posY", 0));
+            p.Change_Name(data.value("name", std::string("Spieler")));
+            p.setAktuellerSlot(data.value("aktuellerSlot", 0));
+            p.setBauModus(data.value("bauModus", false));
 
-        if (data.contains("inventory") && data["inventory"].is_array()) {
-            for (const auto& slot : data["inventory"]) {
-                std::string id  = slot.value("id",     "");
-                int         anz = slot.value("anzahl", 1);
-                if (!id.empty())
-                    p.addToInventory(id, anz);
-                std::cout << "[loadPlayer] Slot: " << id << " x" << anz << std::endl;
+            if (data.contains("inventory") && data["inventory"].is_array()) {
+                for (const auto& slot : data["inventory"]) {
+                    std::string id  = slot.value("id",     "");
+                    int         anz = slot.value("anzahl", 1);
+                    if (!id.empty())
+                        p.addToInventory(id, anz);
+                    std::cout << "[loadPlayer] Slot: " << id << " x" << anz << std::endl;
+                }
             }
+        } catch (const std::exception& e) {
+            std::cerr << "[loadPlayer] JSON Fehler: " << e.what() << " – Fallback auf Standardwerte." << std::endl;
+            p.Set_position(0, 0);
+            p.Change_Name("Spieler");
         }
     } else {
         std::cout << "[loadPlayer] Nicht gefunden -> Fallback (" << pfad << ")" << std::endl;
@@ -91,8 +97,8 @@ void loadPlayer(player& p) {
 void savePlayer(const player& p) {
     json data;
     Vector2 pos           = p.Get_position();
-    data["posX"]          = pos.x;
-    data["posY"]          = pos.y;
+    data["posX"]          = (int)pos.x;
+    data["posY"]          = (int)pos.y;
     data["name"]          = p.Get_Name();
     data["aktuellerSlot"] = p.getAktuellerSlot();
     data["bauModus"]      = p.isBauModus();
@@ -106,7 +112,6 @@ void savePlayer(const player& p) {
     }
     data["inventory"] = inventarArray;
 
-    // Ordner anlegen falls er noch nicht existiert
     namespace fs = std::filesystem;
     std::string pfad = assetPfad("json/player/player.json");
     fs::create_directories(fs::path(pfad).parent_path());
@@ -130,7 +135,7 @@ void moovePlayer(player& p) {
     if (IsKeyDown(KEY_A)) p.Move(Left,  delta);
     if (IsKeyDown(KEY_D)) p.Move(Right, delta);
 
-    // Slot-Auswahl per Tastatur (1–0)
+    // Slot-Auswahl per Tastatur (1-0)
     for (int i = 0; i < 10; i++) {
         if (IsKeyPressed(KEY_ONE + i))
             p.setAktuellerSlot(i);
@@ -145,40 +150,33 @@ void moovePlayer(player& p) {
         p.setAktuellerSlot(neuer);
     }
 
-    // Tab: Inventar öffnen/schließen
     if (IsKeyPressed(KEY_TAB)) p.toggleInventar();
+    if (IsKeyPressed(KEY_B))   p.toggleBauModus();
 
-    // B: Baumodus umschalten
-    if (IsKeyPressed(KEY_B)) p.toggleBauModus();
-
-    // ── onHand: jeden Frame für das aktive Item ────────────────────────────
+    // onHand: jeden Frame fuer das aktive Item
     Item* hand = p.getHandItem();
     if (hand && hand->onHand) hand->onHand();
 
-    // ── onInventar: jeden Frame für alle Items im Inventar ────────────────
+    // onInventar: jeden Frame fuer alle Items im Inventar
     for (const auto& slot : p.getInventory()) {
         if (slot.itemId.empty()) continue;
         Item* item = g_itemManager.getItem(slot.itemId);
         if (item && item->onInventar) item->onInventar();
     }
 
-    // ── onKlick: registrierte Taste ODER linke Maustaste → aktives Item ───
-    // Kein onKlick wenn die Maus gerade über der Inventar-UI liegt!
+    // onKlick: kein Ausloesen wenn Maus ueber UI liegt
     if (hand && hand->onKlick && !p.isMausAufUI()) {
         bool ausloesen = false;
 
-        if (hand->klickTaste >= 0) {
+        if (hand->klickTaste >= 0)
             ausloesen = IsKeyDown(hand->klickTaste);
-        }
 
         if (IsMouseButtonDown(MOUSE_LEFT_BUTTON) ||
-            IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+            IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
             ausloesen = true;
-        }
 
-        if (ausloesen) {
+        if (ausloesen)
             hand->onKlick();
-        }
     }
 
     Vector2 pos     = p.Get_position();
