@@ -11,6 +11,8 @@
 #include "inventar.h"
 #include "Items.h"
 #include "Mouse tile.h"
+#include "item api.h"
+
 
 using json = nlohmann::json;
 
@@ -105,8 +107,9 @@ int main()
                 DrawPlayer(neuerSpieler);
             EndMode2D();
             DrawInventar(neuerSpieler);
-            DrawBauModusHUD(neuerSpieler);
         EndDrawing();
+
+        setBauModus(false);
     }
 
     welt.speichern(assetPfad("json/Map/welt.json"));

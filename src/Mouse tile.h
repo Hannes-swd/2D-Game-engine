@@ -20,8 +20,7 @@ inline Vector2 getTileMousePos(int tileSize = 32) {
 // ── Baumodus-Raster und Platzierungs-Vorschau ─────────────────────────────────
 // Zeichnet das Raster und den Platzierungs-Rahmen wenn der Baumodus aktiv ist.
 // Muss im BeginMode2D / EndMode2D Block aufgerufen werden!
-inline void DrawBauModusGrid(const player& p, int tileSize = 32,
-                              int sichtRadius = 20)
+inline void DrawBauModusGrid(const player& p, int tileSize = 32, int sichtRadius = 20)
 {
     if (!p.isBauModus()) return;
 
@@ -97,15 +96,3 @@ inline void DrawBauModusGrid(const player& p, int tileSize = 32,
     }
 }
 
-// ── Baumodus-HUD (Screen-Space, außerhalb BeginMode2D aufrufen!) ──────────────
-inline void DrawBauModusHUD(const player& p) {
-    if (!p.isBauModus()) return;
-
-    const char* label = "[ BAUMODUS ]";
-    int fontSize = 14;
-    int tw = MeasureText(label, fontSize);
-    int tx = (GetScreenWidth() - tw) / 2;
-    int ty = 12;
-    DrawText(label, tx + 1, ty + 1, fontSize, { 0, 0, 0, 180 });
-    DrawText(label, tx,     ty,     fontSize, { 80, 200, 255, 255 });
-}

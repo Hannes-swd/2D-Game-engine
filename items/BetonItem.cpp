@@ -1,23 +1,16 @@
-#include "item_registry.h"
-#include "map.h"
-#include "Mouse tile.h"
-extern Map welt;
+#include "item api.h"
 
-// ── Automatische Registrierung ────────────────────────────────────────────────
-REGISTER_ITEM_FUNC_MIT_TASTE(BetonItemklick,    KEY_E);
-REGISTER_ITEM_FUNC(BetonItemInInventar);
-REGISTER_ITEM_FUNC(BetonItemInHand);
+ITEM_BEGIN("Beton", Beton)
 
-// ── Implementierungen ─────────────────────────────────────────────────────────
-void BetonItemklick() {
-    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-        Vector2 Mousepos = getTileMousePos(32);
-        welt.setTile((int)Mousepos.x, (int)Mousepos.y, "concrete");
+    void onHand() {
+
     }
-}
 
-void BetonItemInInventar() {
-}
+    void onKlick() {
+    }
 
-void BetonItemInHand() {
-}
+    void onInventar() {
+        // nichts
+    }
+
+ITEM_END("Beton")

@@ -48,8 +48,10 @@ public:
     int  getAktuellerSlot() const         { return aktuellerSlot; }
     void setAktuellerSlot(int s)          {
         int neu = (s < 0) ? 0 : (s > 9 ? 9 : s);
-        if (neu != aktuellerSlot) bauModus = false; // Baumodus aus beim Slot-Wechsel
         aktuellerSlot = neu;
+        // bauModus wird NICHT hier zurückgesetzt.
+        // onHand() des neuen Items setzt ihn korrekt (z.B. Gras → true, Beton → false).
+        // Das geschieht automatisch jeden Frame in moovePlayer().
     }
     int  getDragSlot() const              { return dragSlot; }
     void setDragSlot(int s)               { dragSlot = s; }

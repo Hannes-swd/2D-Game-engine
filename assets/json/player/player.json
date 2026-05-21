@@ -1,6 +1,6 @@
 {
-    "aktuellerSlot": 0,
-    "bauModus": true,
+    "aktuellerSlot": 4,
+    "bauModus": false,
     "inventory": [
         {
             "anzahl": 10,
@@ -12,6 +12,6 @@
         }
     ],
     "name": "Spieler",
-    "posX": 180,
-    "posY": 123
+    "posX": 145,
+    "posY": 43
 }

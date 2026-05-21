@@ -101,6 +101,31 @@ static void ladeItemsAusJson(const std::string& pfad,
         bindFunc(item->onHand,     itemData, "inHand");
         bindFunc(item->onUpdate,   itemData, "onUpdate");
 
+        // ── Auto-Binding fuer ITEM_BEGIN/ITEM_END Callbacks ───────────────────
+        // Modder-Dateien registrieren Funktionen als "<id>_onHand" usw.
+        // Falls JSON keinen expliziten Eintrag hat, hier automatisch binden.
+        if (!item->onHand) {
+            auto fn = g_itemManager.sucheFunc(id + "_onHand");
+            if (fn) {
+                item->onHand = fn;
+                std::cout << "[ItemManager] Auto-Bind: " << id << "_onHand" << std::endl;
+            }
+        }
+        if (!item->onKlick) {
+            auto fn = g_itemManager.sucheFunc(id + "_onKlick");
+            if (fn) {
+                item->onKlick = fn;
+                std::cout << "[ItemManager] Auto-Bind: " << id << "_onKlick" << std::endl;
+            }
+        }
+        if (!item->onInventar) {
+            auto fn = g_itemManager.sucheFunc(id + "_onInventar");
+            if (fn) {
+                item->onInventar = fn;
+                std::cout << "[ItemManager] Auto-Bind: " << id << "_onInventar" << std::endl;
+            }
+        }
+
         items[id] = std::move(item);
         std::cout << "[ItemManager] Item geladen: " << id << std::endl;
     }
