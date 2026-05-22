@@ -1,17 +1,17 @@
 {
-    "aktuellerSlot": 4,
+    "aktuellerSlot": 1,
     "bauModus": false,
     "inventory": [
         {
             "anzahl": 10,
-            "id": "grasItem"
+            "id": "Beton"
         },
         {
-            "anzahl": 10,
-            "id": "Beton"
+            "anzahl": 9,
+            "id": "grasItem"
         }
     ],
     "name": "Spieler",
-    "posX": 145,
-    "posY": 43
+    "posX": 104,
+    "posY": -66
 }

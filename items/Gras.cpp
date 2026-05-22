@@ -1,4 +1,5 @@
 #include "item api.h"
+#include "items.h"
 
 ITEM_BEGIN("grasItem", grasItem)
 
@@ -8,9 +9,10 @@ ITEM_BEGIN("grasItem", grasItem)
 
     void onKlick() {
         if (!isBauModus()) return;
-        if (linksklick()) {
+        if (linksklickPressed()) {
             Vector2 t = getTileMaus();
             setTile((int)t.x, (int)t.y, "gras");
+            g_spieler->removeFromInventory("grasItem", 1);
         }
     }
 
