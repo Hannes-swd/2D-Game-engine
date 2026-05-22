@@ -1,12 +1,12 @@
-// inventar.cpp
+// inventory.cpp
 // Inventar-UI: Hotbar, erweitertes Inventar-Grid, Drag & Drop, Tooltip
-#include "inventar.h"
+#include "inventory.h"
 #include "Items.h"
 #include "raylib.h"
 #include <string>
 
 // ── Hilfsfunktion: zeichnet einen einzelnen Slot ──────────────────────────────
-void zeichneSlot(int sx, int sy, int size, const InventarSlot* slot,
+void drawSlot(int sx, int sy, int size, const InventorySlot* slot,
                  bool aktiv, bool isDragSource)
 {
     Color bg = isDragSource ? Color{80, 80, 40, 220}
@@ -51,8 +51,8 @@ void zeichneSlot(int sx, int sy, int size, const InventarSlot* slot,
                  sy + size / 2 - fontSize / 2, fontSize, LIGHTGRAY);
     }
 
-    if (slot->anzahl > 1) {
-        std::string anzStr = std::to_string(slot->anzahl);
+    if (slot->amount > 1) {
+        std::string anzStr = std::to_string(slot->amount);
         int fontSize = 10;
         int tw = MeasureText(anzStr.c_str(), fontSize);
         DrawText(anzStr.c_str(), sx + size - tw - 3 + 1,
@@ -63,7 +63,7 @@ void zeichneSlot(int sx, int sy, int size, const InventarSlot* slot,
 }
 
 // ── Haupt-UI: Hotbar + erweitertes Inventar + Drag & Drop ────────────────────
-void DrawInventar(player& p) {
+void drawInventory(player& p) {
     const int SLOT_SIZE    = 48;
     const int SLOT_PADDING = 6;
     const int SLOTS        = 10;
@@ -79,11 +79,11 @@ void DrawInventar(player& p) {
 
     auto& inv = p.getInventoryMut();
 
-    // ── Maus-über-UI erkennen (vor allem Draw-Aufrufen) ──────────────────────
+    // ── Detect mouse over UI (before draw calls) ──────────────────────
     Vector2 mouse = GetMousePosition();
-    bool mausAufHotbar = (mouse.x >= barX && mouse.x <= barX + BAR_W + 16 &&
+    bool mouseOnHotbar = (mouse.x >= barX && mouse.x <= barX + BAR_W + 16 &&
                           mouse.y >= barY && mouse.y <= barY + BAR_H);
-    bool mausAufInvGrid = false;
+    bool mouseOnInvGrid = false;
 
     // ── Hotbar-Hintergrund ────────────────────────────────────────────────────
     DrawRectangleRounded(
@@ -100,11 +100,11 @@ void DrawInventar(player& p) {
         int sx = barX + 8 + i * (SLOT_SIZE + SLOT_PADDING);
         int sy = barY + 8;
 
-        bool aktiv        = (i == p.getAktuellerSlot());
+        bool aktiv        = (i == p.getCurrentSlot());
         bool isDragSource = (i == p.getDragSlot());
 
-        const InventarSlot* slotPtr = (i < (int)inv.size()) ? &inv[i] : nullptr;
-        zeichneSlot(sx, sy, SLOT_SIZE, slotPtr, aktiv, isDragSource);
+        const InventorySlot* slotPtr = (i < (int)inv.size()) ? &inv[i] : nullptr;
+        drawSlot(sx, sy, SLOT_SIZE, slotPtr, aktiv, isDragSource);
     }
 
     // ── Tooltip: Name des aktiven Items ──────────────────────────────────────
@@ -137,7 +137,7 @@ void DrawInventar(player& p) {
 
     if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         if (slotUnterMaus >= 0) {
-            p.setAktuellerSlot(slotUnterMaus);
+            p.setCurrentSlot(slotUnterMaus);
             if (slotUnterMaus < (int)inv.size() && !inv[slotUnterMaus].itemId.empty()) {
                 p.setDragSlot(slotUnterMaus);
             }
@@ -156,7 +156,7 @@ void DrawInventar(player& p) {
 
     // ── Drag-Vorschau (Item folgt dem Mauszeiger) ─────────────────────────────
     if (p.getDragSlot() >= 0 && p.getDragSlot() < (int)inv.size()) {
-        const InventarSlot& dragged = inv[p.getDragSlot()];
+        const InventorySlot& dragged = inv[p.getDragSlot()];
         Item* dItem = g_itemManager.getItem(dragged.itemId);
         if (dItem && dItem->textur.id != 0) {
             int   drawSize = SLOT_SIZE - 8;
@@ -169,15 +169,15 @@ void DrawInventar(player& p) {
         }
     }
 
-    // ── Rechtsklick auf Slot → onKlick des Items ──────────────────────────────
+    // ── Rechtsklick auf Slot → onClick des Items ──────────────────────────────
     if (IsMouseButtonPressed(MOUSE_RIGHT_BUTTON) && slotUnterMaus >= 0) {
-        p.setAktuellerSlot(slotUnterMaus);
+        p.setCurrentSlot(slotUnterMaus);
         Item* clicked = p.getHandItem();
-        if (clicked && clicked->onKlick) clicked->onKlick();
+        if (clicked && clicked->onClick) clicked->onClick();
     }
 
     // ── Erweitertes Inventar-Grid (TAB) ───────────────────────────────────────
-    if (p.isInventarOffen()) {
+    if (p.isInventoryOpen()) {
         const int COLS    = 5;
         const int ROWS    = 4;
         const int WIN_W   = COLS * (SLOT_SIZE + SLOT_PADDING) - SLOT_PADDING + 24;
@@ -185,7 +185,7 @@ void DrawInventar(player& p) {
         int winX = (sw - WIN_W) / 2;
         int winY = (sh - WIN_H) / 2 - 40;
 
-        mausAufInvGrid = (mouse.x >= winX && mouse.x <= winX + WIN_W &&
+        mouseOnInvGrid = (mouse.x >= winX && mouse.x <= winX + WIN_W &&
                           mouse.y >= winY && mouse.y <= winY + WIN_H);
 
         DrawRectangleRounded(
@@ -202,8 +202,8 @@ void DrawInventar(player& p) {
                 int idx = 10 + r * COLS + c;
                 int sx  = winX + 12 + c * (SLOT_SIZE + SLOT_PADDING);
                 int sy  = winY + 28 + r * (SLOT_SIZE + SLOT_PADDING);
-                const InventarSlot* sp = (idx < (int)inv.size()) ? &inv[idx] : nullptr;
-                zeichneSlot(sx, sy, SLOT_SIZE, sp, false, idx == p.getDragSlot());
+                const InventorySlot* sp = (idx < (int)inv.size()) ? &inv[idx] : nullptr;
+                drawSlot(sx, sy, SLOT_SIZE, sp, false, idx == p.getDragSlot());
 
                 if (mouse.x >= sx && mouse.x <= sx + SLOT_SIZE &&
                     mouse.y >= sy && mouse.y <= sy + SLOT_SIZE)
@@ -221,6 +221,6 @@ void DrawInventar(player& p) {
         }
     }
 
-    // ── UI-Flag aktualisieren (wird von moovePlayer gelesen) ──────────────────
-    p.setMausAufUI(mausAufHotbar || mausAufInvGrid);
+    // ── UI-Flag aktualisieren (wird von updatePlayer gelesen) ──────────────────
+    p.setMouseOnUI(mouseOnHotbar || mouseOnInvGrid);
 }

@@ -20,28 +20,28 @@ inline Vector2 getTileMousePos(int tileSize = 32) {
 // ── Baumodus-Raster und Platzierungs-Vorschau ─────────────────────────────────
 // Zeichnet das Raster und den Platzierungs-Rahmen wenn der Baumodus aktiv ist.
 // Muss im BeginMode2D / EndMode2D Block aufgerufen werden!
-inline void DrawBauModusGrid(const player& p, int tileSize = 32, int sichtRadius = 20)
+inline void drawBuildModeGrid(const player& p, int tileSize = 32, int sichtRadius = 20)
 {
-    if (!p.isBauModus()) return;
+    if (!p.isBuildMode()) return;
 
     Vector2 screenPos = GetMousePosition();
     Vector2 worldPos  = GetScreenToWorld2D(screenPos, camera);
 
-    // Tile unter der Maus (ganzzahlig, floor für negative Koordinaten)
+    // Tile under the mouse (integer, floor for negative coordinates)
     int mausTileX = (int)floorf(worldPos.x / (float)tileSize);
     int mausTileY = (int)floorf(worldPos.y / (float)tileSize);
 
     // Spielerposition als Mittelpunkt für das sichtbare Raster
-    Vector2 spielerPos  = p.Get_position();
-    int spielerTileX    = (int)floorf(spielerPos.x / (float)tileSize);
-    int spielerTileY    = (int)floorf(spielerPos.y / (float)tileSize);
+    Vector2 playerPos  = p.Get_position();
+    int playerTileX    = (int)floorf(playerPos.x / (float)tileSize);
+    int playerTileY    = (int)floorf(playerPos.y / (float)tileSize);
 
     // ── Rasterlinien im sichtbaren Bereich ────────────────────────────────────
     Color rasterFarbe = { 100, 140, 255, 45 };
     for (int dy = -sichtRadius; dy <= sichtRadius; dy++) {
         for (int dx = -sichtRadius; dx <= sichtRadius; dx++) {
-            int tx = spielerTileX + dx;
-            int ty = spielerTileY + dy;
+            int tx = playerTileX + dx;
+            int ty = playerTileY + dy;
             DrawRectangleLinesEx(
                 { (float)(tx * tileSize), (float)(ty * tileSize),
                   (float)tileSize,        (float)tileSize },
@@ -95,4 +95,3 @@ inline void DrawBauModusGrid(const player& p, int tileSize = 32, int sichtRadius
         DrawText(koordinaten, (int)px + 2, (int)py + 2, fontSize, { 200, 230, 255, 200 });
     }
 }
-

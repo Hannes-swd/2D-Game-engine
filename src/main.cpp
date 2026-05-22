@@ -8,7 +8,7 @@
 #include "map.h"
 #include "Cam.h"
 #include "player.h"
-#include "inventar.h"
+#include "inventory.h"
 #include "Items.h"
 #include "Mouse tile.h"
 #include "item api.h"
@@ -20,12 +20,12 @@ using json = nlohmann::json;
     #define ASSETS_PATH "assets"
 #endif
 
-std::string assetPfad(const std::string& relativ) {
+std::string assetPath(const std::string& relativ) {
     return std::string(ASSETS_PATH) + "/" + relativ;
 }
 
-Map welt;
-player* g_spieler = nullptr;
+Map world;
+player* g_player = nullptr;
 
 int main()
 {
@@ -46,9 +46,9 @@ int main()
     SetWindowState(FLAG_WINDOW_RESIZABLE);
     SetTargetFPS(60);
 
-    // config.json laden – try/catch damit schlechte JSON nicht abort() ausloest
+    // config.json load – try/catch damit schlechte JSON nicht abort() ausloest
     {
-        std::ifstream configFile(assetPfad("config.json"));
+        std::ifstream configFile(assetPath("config.json"));
         if (configFile.is_open()) {
             try {
                 json config = json::parse(configFile);
@@ -60,28 +60,28 @@ int main()
         }
     }
 
-    player neuerSpieler;
-    g_spieler = &neuerSpieler;
+    player localPlayer;
+    g_player = &localPlayer;
     initCamera();
 
-    g_itemManager.scanneUndLadeItems();
+    g_itemManager.scanAndLoadItems();
 
-    // ── Map laden ─────────────────────────────────────────────────────────────
+    // ── Map load ─────────────────────────────────────────────────────────────
     {
         namespace fs = std::filesystem;
-        const std::string save = assetPfad("json/Map/welt.json");
-        const std::string def  = assetPfad("json/Map/welt_default.json");
+        const std::string save = assetPath("json/Map/world.json");
+        const std::string def  = assetPath("json/Map/welt_default.json");
         if (!fs::exists(save) && fs::exists(def))
             fs::copy_file(def, save);
     }
-    welt.laden(assetPfad("json/Map/welt.json"));
+    world.load(assetPath("json/Map/world.json"));
 
-    loadPlayer(neuerSpieler);
+    loadPlayer(localPlayer);
 
-    BodenDatenbank boden;
-    boden.laden(assetPfad("json/Map/ground.json"));
-    boden.lade_texturen();
-    welt.init(boden);
+    GroundDatabase ground;
+    ground.load(assetPath("json/Map/ground.json"));
+    ground.loadTextures();
+    world.init(ground);
 
     float speicherTimer = 0.0f;
     const float SPEICHER_INTERVALL = 30.0f;
@@ -89,32 +89,32 @@ int main()
     while (!WindowShouldClose())
     {
         float delta = GetFrameTime();
-        moovePlayer(neuerSpieler);
-        kameramoovment();
+        updatePlayer(localPlayer);
+        updateCamera();
 
         speicherTimer += delta;
         if (speicherTimer >= SPEICHER_INTERVALL) {
-            welt.speichern(assetPfad("json/Map/welt.json"));
-            savePlayer(neuerSpieler);
+            world.save(assetPath("json/Map/world.json"));
+            savePlayer(localPlayer);
             speicherTimer = 0.0f;
         }
 
         BeginDrawing();
             ClearBackground(WHITE);
             BeginMode2D(camera);
-                draw_ground(welt, boden, TILE_SIZE);
-                DrawBauModusGrid(neuerSpieler, TILE_SIZE);
-                DrawPlayer(neuerSpieler);
+                draw_ground(world, ground, TILE_SIZE);
+                drawBuildModeGrid(localPlayer, TILE_SIZE);
+                drawPlayer(localPlayer);
             EndMode2D();
-            DrawInventar(neuerSpieler);
+            drawInventory(localPlayer);
         EndDrawing();
 
-        setBauModus(false);
+        setBuildMode(false);
     }
 
-    welt.speichern(assetPfad("json/Map/welt.json"));
-    savePlayer(neuerSpieler);
-    boden.entlade_texturen();
+    world.save(assetPath("json/Map/world.json"));
+    savePlayer(localPlayer);
+    ground.unloadTextures();
     CloseWindow();
     return 0;
 }

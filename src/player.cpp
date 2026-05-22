@@ -1,5 +1,5 @@
 #include "player.h"
-#include "inventar.h"
+#include "inventory.h"
 #include "Cam.h"
 #include <fstream>
 #include <iostream>
@@ -7,47 +7,47 @@
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
-// Asset-Pfad-Helper (definiert in main.cpp)
-extern std::string assetPfad(const std::string& relativ);
+// Asset path helper (defined in main.cpp)
+extern std::string assetPath(const std::string& relativ);
 
 // ── Inventory-Methoden ────────────────────────────────────────────────────────
 
 Item* player::getHandItem() const {
-    if (aktuellerSlot < (int)inventar.size()) {
-        const std::string& id = inventar[aktuellerSlot].itemId;
+    if (currentSlot < (int)inventory.size()) {
+        const std::string& id = inventory[currentSlot].itemId;
         if (!id.empty()) return g_itemManager.getItem(id);
     }
     return nullptr;
 }
 
-void player::addToInventory(const std::string& itemId, int anzahl) {
-    for (auto& slot : inventar) {
+void player::addToInventory(const std::string& itemId, int amount) {
+    for (auto& slot : inventory) {
         if (slot.itemId == itemId) {
-            slot.anzahl += anzahl;
+            slot.amount += amount;
             return;
         }
     }
-    inventar.push_back({ itemId, anzahl });
+    inventory.push_back({ itemId, amount });
 }
 
-void player::removeFromInventory(const std::string& itemId, int anzahl) {
-    for (auto it = inventar.begin(); it != inventar.end(); ++it) {
+void player::removeFromInventory(const std::string& itemId, int amount) {
+    for (auto it = inventory.begin(); it != inventory.end(); ++it) {
         if (it->itemId == itemId) {
-            it->anzahl -= anzahl;
-            if (it->anzahl <= 0) inventar.erase(it);
+            it->amount -= amount;
+            if (it->amount <= 0) inventory.erase(it);
             return;
         }
     }
 }
 
 bool player::hasItem(const std::string& itemId) const {
-    for (const auto& slot : inventar)
+    for (const auto& slot : inventory)
         if (slot.itemId == itemId) return true;
     return false;
 }
 
 void player::swapSlots(int a, int b) {
-    auto& inv = inventar;
+    auto& inv = inventory;
     while ((int)inv.size() <= std::max(a, b))
         inv.push_back({"", 0});
     std::swap(inv[a], inv[b]);
@@ -58,23 +58,23 @@ void player::swapSlots(int a, int b) {
 // ── Speichern / Laden ─────────────────────────────────────────────────────────
 
 void loadPlayer(player& p) {
-    std::string pfad = assetPfad("json/player/player.json");
-    std::ifstream f(pfad);
+    std::string path = assetPath("json/player/player.json");
+    std::ifstream f(path);
 
     if (f.is_open()) {
-        std::cout << "[loadPlayer] Lade: " << pfad << std::endl;
+        std::cout << "[loadPlayer] Lade: " << path << std::endl;
         try {
             json data;
             f >> data;
             p.Set_position(data.value("posX", 0), data.value("posY", 0));
             p.Change_Name(data.value("name", std::string("Spieler")));
-            p.setAktuellerSlot(data.value("aktuellerSlot", 0));
-            p.setBauModus(data.value("bauModus", false));
+            p.setCurrentSlot(data.value("currentSlot", 0));
+            p.setBuildMode(data.value("buildMode", false));
 
             if (data.contains("inventory") && data["inventory"].is_array()) {
                 for (const auto& slot : data["inventory"]) {
                     std::string id  = slot.value("id",     "");
-                    int         anz = slot.value("anzahl", 1);
+                    int         anz = slot.value("amount", 1);
                     if (!id.empty())
                         p.addToInventory(id, anz);
                     std::cout << "[loadPlayer] Slot: " << id << " x" << anz << std::endl;
@@ -86,7 +86,7 @@ void loadPlayer(player& p) {
             p.Change_Name("Spieler");
         }
     } else {
-        std::cout << "[loadPlayer] Nicht gefunden -> Fallback (" << pfad << ")" << std::endl;
+        std::cout << "[loadPlayer] Nicht gefunden -> Fallback (" << path << ")" << std::endl;
         p.Set_position(0, 0);
         p.Change_Name("Spieler");
     }
@@ -100,34 +100,34 @@ void savePlayer(const player& p) {
     data["posX"]          = (int)pos.x;
     data["posY"]          = (int)pos.y;
     data["name"]          = p.Get_Name();
-    data["aktuellerSlot"] = p.getAktuellerSlot();
-    data["bauModus"]      = p.isBauModus();
+    data["currentSlot"] = p.getCurrentSlot();
+    data["buildMode"]      = p.isBuildMode();
 
-    json inventarArray = json::array();
+    json inventoryArray = json::array();
     for (const auto& slot : p.getInventory()) {
-        inventarArray.push_back({
+        inventoryArray.push_back({
             {"id",     slot.itemId},
-            {"anzahl", slot.anzahl}
+            {"amount", slot.amount}
         });
     }
-    data["inventory"] = inventarArray;
+    data["inventory"] = inventoryArray;
 
     namespace fs = std::filesystem;
-    std::string pfad = assetPfad("json/player/player.json");
-    fs::create_directories(fs::path(pfad).parent_path());
+    std::string path = assetPath("json/player/player.json");
+    fs::create_directories(fs::path(path).parent_path());
 
-    std::ofstream f(pfad);
+    std::ofstream f(path);
     if (f.is_open()) {
         f << data.dump(4);
-        std::cout << "[savePlayer] Gespeichert: " << pfad << std::endl;
+        std::cout << "[savePlayer] Gespeichert: " << path << std::endl;
     } else {
-        std::cerr << "[savePlayer] FEHLER: Kann nicht schreiben: " << pfad << std::endl;
+        std::cerr << "[savePlayer] FEHLER: Kann nicht schreiben: " << path << std::endl;
     }
 }
 
 // ── Bewegung ──────────────────────────────────────────────────────────────────
 
-void moovePlayer(player& p) {
+void updatePlayer(player& p) {
     float delta = GetFrameTime();
 
     if (IsKeyDown(KEY_W)) p.Move(Up,    delta);
@@ -138,45 +138,45 @@ void moovePlayer(player& p) {
     // Slot-Auswahl per Tastatur (1-0)
     for (int i = 0; i < 10; i++) {
         if (IsKeyPressed(KEY_ONE + i))
-            p.setAktuellerSlot(i);
+            p.setCurrentSlot(i);
     }
 
     // Mausrad
     float rad = GetMouseWheelMove();
     if (rad != 0.0f) {
-        int neuer = p.getAktuellerSlot() - (int)rad;
-        if (neuer < 0) neuer = 9;
-        if (neuer > 9) neuer = 0;
-        p.setAktuellerSlot(neuer);
+        int newSlot = p.getCurrentSlot() - (int)rad;
+        if (newSlot < 0) newSlot = 9;
+        if (newSlot > 9) newSlot = 0;
+        p.setCurrentSlot(newSlot);
     }
 
-    if (IsKeyPressed(KEY_TAB)) p.toggleInventar();
-    if (IsKeyPressed(KEY_B))   p.toggleBauModus();
+    if (IsKeyPressed(KEY_TAB)) p.toggleInventory();
+    if (IsKeyPressed(KEY_B))   p.toggleBuildMode();
 
     // onHand: jeden Frame fuer das aktive Item
     Item* hand = p.getHandItem();
     if (hand && hand->onHand) hand->onHand();
 
-    // onInventar: jeden Frame fuer alle Items im Inventar
+    // onInventory: jeden Frame fuer alle Items im Inventar
     for (const auto& slot : p.getInventory()) {
         if (slot.itemId.empty()) continue;
         Item* item = g_itemManager.getItem(slot.itemId);
-        if (item && item->onInventar) item->onInventar();
+        if (item && item->onInventory) item->onInventory();
     }
 
-    // onKlick: kein Ausloesen wenn Maus ueber UI liegt
-    if (hand && hand->onKlick && !p.isMausAufUI()) {
+    // onClick: kein Ausloesen wenn Maus ueber UI liegt
+    if (hand && hand->onClick && !p.IsMouseOnUi()) {
         bool ausloesen = false;
 
-        if (hand->klickTaste >= 0)
-            ausloesen = IsKeyDown(hand->klickTaste);
+        if (hand->clickKey >= 0)
+            ausloesen = IsKeyDown(hand->clickKey);
 
         if (IsMouseButtonDown(MOUSE_LEFT_BUTTON) ||
             IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
             ausloesen = true;
 
         if (ausloesen)
-            hand->onKlick();
+            hand->onClick();
     }
 
     Vector2 pos     = p.Get_position();
@@ -186,7 +186,7 @@ void moovePlayer(player& p) {
 
 // ── Zeichnen ──────────────────────────────────────────────────────────────────
 
-void DrawPlayer(player& p) {
+void drawPlayer(player& p) {
     Vector2 pos = p.Get_position();
     DrawCircle((int)pos.x, (int)pos.y, 10, ORANGE);
 

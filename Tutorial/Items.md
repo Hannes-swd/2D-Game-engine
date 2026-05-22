@@ -9,72 +9,105 @@
 Open [`assets/json/items/item.json`](assets/json/items/item.json) and add a new entry using the following template:
 
 ```json
-"grassItem": {
-    "name": "grass",
-    "texture": "assets/Images/Map/grass.png",
-    "onClick":     "grassItemClick",
-    "inInventory": "grassItemInInventory",
-    "inHand":      "grassItemInHand"
+"grasItem": {
+    "name": "gras",
+    "textur": "assets/Images/Map/gras.png",
+    "onKlick": "grasItemklick",
+    "inInventar": "grasItemInInventar",
+    "inHand": "grasItemInHand"
 }
 ```
 
 | Field | Description |
 |---|---|
 | `name` | Display name of the item |
-| `texture` | Path to the item's sprite/image |
-| `onClick` | The name of the function in your `.cpp` file that runs when the player clicks with this item selected |
-| `inInventory` | The name of the function in your `.cpp` file that runs every tick while the item is in the inventory |
-| `inHand` | The name of the function in your `.cpp` file that runs every tick while the item is held/selected |
+| `textur` | Path to the item's sprite/image |
+| `onKlick` | Name of the function called when the player clicks with this item |
+| `inInventar` | Name of the function called every tick while the item is in the inventory |
+| `inHand` | Name of the function called every tick while the item is held |
 
-> **Important:** The function names you write here (e.g. `"grassItemClick"`) must **exactly match** the function names in your `.cpp` file. This is how the engine knows which code to call.
+> **Important:** The values of `onKlick`, `inInventar`, and `inHand` are the **exact function names** the engine will look for in your `.cpp` file. They must match character for character.
 
 ---
 
 ## Step 2 — Create the item source file
 
-Inside the [`items/`](items/) folder, create a new `.cpp` file for your item (e.g. `grassItem.cpp`).
+Inside the [`items/`](items/) folder, create a new `.cpp` file for your item (e.g. `Gras.cpp`).
 
-The function names here **must match** what you wrote in `item.json`:
+The three callback functions **must be named exactly** as defined in `item.json`:
 
 ```cpp
 #include "item_api.h"
-#include "items.h"
 
-ITEM_BEGIN("grassItem", grassItem)
+ITEM_BEGIN("grasItem", grasItem)
 
-    // Matches "inHand": "grassItemInHand" in item.json
-    void grassItemInHand() {
-        // Runs every tick while the item is held/selected
+    // Called every tick while the item is held.
+    // Name must match "inHand" in item.json.
+    void grasItemInHand() {
+
     }
 
-    // Matches "onClick": "grassItemClick" in item.json
-    void grassItemClick() {
-        // Runs when the player clicks with this item selected
+    // Called when the player clicks with this item selected.
+    // Name must match "onKlick" in item.json.
+    void grasItemklick() {
+
     }
 
-    // Matches "inInventory": "grassItemInInventory" in item.json
-    void grassItemInInventory() {
-        // Runs every tick while the item is in the inventory
+    // Called every tick while the item is in the inventory.
+    // Name must match "inInventar" in item.json.
+    void grasItemInInventar() {
+
     }
 
-ITEM_END("grassItem")
+ITEM_END("grasItem")
 ```
 
-> **Note:** The ID string passed to `ITEM_BEGIN` and `ITEM_END` must also **exactly match** the key in `item.json` — in this case `"grassItem"`.
+> **Important:** The ID string in `ITEM_BEGIN` and `ITEM_END` must **exactly match** the key in `item.json` — here `"grasItem"`. The second argument of `ITEM_BEGIN` (here `grasItem`) must be a valid C++ identifier with no spaces or special characters.
+
+> **Important:** The function names are **not fixed** — you define them yourself in `item.json`. Whatever you write as the value of `onKlick`, `inHand`, and `inInventar` is what your `.cpp` functions must be named.
 
 ---
 
 ## How it connects
 
 ```
-item.json                        grassItem.cpp
-─────────────────────────────    ─────────────────────────────
-"onClick":    "grassItemClick" ──► void grassItemClick()    { }
-"inInventory":"grassItemInInventory"──► void grassItemInInventory() { }
-"inHand":     "grassItemInHand"──► void grassItemInHand()   { }
+item.json                          Gras.cpp
+──────────────────────────────     ──────────────────────────────
+"inHand":    "grasItemInHand"   ──► void grasItemInHand()    { }
+"onKlick":   "grasItemklick"    ──► void grasItemklick()     { }
+"inInventar":"grasItemInInventar"──► void grasItemInInventar(){ }
 ```
 
-The engine reads the function names from `item.json` and calls the matching functions in your `.cpp` file. If the names don't match, the functions won't be called.
+The engine reads the callback names from `item.json` and binds them to the matching functions in your `.cpp` file at startup.
+
+---
+
+## Full example — Grass placement item
+
+```cpp
+#include "item_api.h"
+
+ITEM_BEGIN("grasItem", grasItem)
+
+    void grasItemInHand() {
+        setBuildMode(true);  // show placement grid while held
+    }
+
+    void grasItemklick() {
+        if (!isBuildMode()) return;
+        if (leftClickPressed()) {
+            Vector2 t = getTileMouse();
+            setTile((int)t.x, (int)t.y, "gras");
+            g_player->removeFromInventory("grasItem", 1);
+        }
+    }
+
+    void grasItemInInventar() {
+        // nothing
+    }
+
+ITEM_END("grasItem")
+```
 
 ---
 

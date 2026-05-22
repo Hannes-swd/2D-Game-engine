@@ -4,9 +4,9 @@
 #include "raylib.h"
 #include "Items.h"
 
-struct InventarSlot {
+struct InventorySlot {
     std::string itemId;
-    int anzahl;
+    int amount;
 };
 
 enum direction { Up, Down, Right, Left };
@@ -16,14 +16,14 @@ private:
     float posX  = 0.0f;
     float posY  = 0.0f;
     float speed = 100.0f;
-    std::vector<InventarSlot> inventar;
+    std::vector<InventorySlot> inventory;
     std::string name;
 
-    int  aktuellerSlot  = 0;   // aktuell ausgewählter Hotbar-Slot (0–9)
+    int  currentSlot  = 0;   // aktuell ausgewählter Hotbar-Slot (0–9)
     int  dragSlot       = -1;  // Slot der gerade gezogen wird (-1 = keiner)
-    bool inventarOffen  = false; // erweitertes Inventar offen?
-    bool mausAufUI      = false; // true wenn Maus über Hotbar/Inventar-UI liegt
-    bool bauModus       = false; // Baumodus: zeigt Raster + Platzierungs-Vorschau
+    bool inventoryOpen  = false; // erweitertes Inventar offen?
+    bool mouseOnUI      = false; // true when mouse is over hotbar/inventory UI
+    bool buildMode       = false; // Baumodus: zeigt Raster + Platzierungs-Vorschau
 
 public:
     void Set_position(int posx, int posy) {
@@ -45,33 +45,33 @@ public:
     std::string Get_Name() const { return name; }
 
     // Slot-Steuerung
-    int  getAktuellerSlot() const         { return aktuellerSlot; }
-    void setAktuellerSlot(int s)          {
+    int  getCurrentSlot() const         { return currentSlot; }
+    void setCurrentSlot(int s)          {
         int neu = (s < 0) ? 0 : (s > 9 ? 9 : s);
-        aktuellerSlot = neu;
-        // bauModus wird NICHT hier zurückgesetzt.
+        currentSlot = neu;
+        // buildMode wird NICHT hier zurückgesetzt.
         // onHand() des neuen Items setzt ihn korrekt (z.B. Gras → true, Beton → false).
-        // Das geschieht automatisch jeden Frame in moovePlayer().
+        // Das geschieht automatisch jeden Frame in updatePlayer().
     }
     int  getDragSlot() const              { return dragSlot; }
     void setDragSlot(int s)               { dragSlot = s; }
-    bool isInventarOffen() const          { return inventarOffen; }
-    void toggleInventar()                 { inventarOffen = !inventarOffen; }
-    bool isMausAufUI() const              { return mausAufUI; }
-    void setMausAufUI(bool b)             { mausAufUI = b; }
-    bool isBauModus() const               { return bauModus; }
-    void setBauModus(bool b)              { bauModus = b; }
-    void toggleBauModus()                 { bauModus = !bauModus; }
+    bool isInventoryOpen() const          { return inventoryOpen; }
+    void toggleInventory()                 { inventoryOpen = !inventoryOpen; }
+    bool IsMouseOnUi() const              { return mouseOnUI; }
+    void setMouseOnUI(bool b)             { mouseOnUI = b; }
+    bool isBuildMode() const               { return buildMode; }
+    void setBuildMode(bool b)              { buildMode = b; }
+    void toggleBuildMode()                 { buildMode = !buildMode; }
 
     // Aktives Item (in der Hand)
     Item* getHandItem() const;
 
     // Inventar
-    void addToInventory(const std::string& itemId, int anzahl);
-    void removeFromInventory(const std::string& itemId, int anzahl);
+    void addToInventory(const std::string& itemId, int amount);
+    void removeFromInventory(const std::string& itemId, int amount);
     bool hasItem(const std::string& itemId) const;
-    const std::vector<InventarSlot>& getInventory() const { return inventar; }
-    std::vector<InventarSlot>&       getInventoryMut()    { return inventar; }
+    const std::vector<InventorySlot>& getInventory() const { return inventory; }
+    std::vector<InventorySlot>&       getInventoryMut()    { return inventory; }
 
     // Slots tauschen
     void swapSlots(int a, int b);
@@ -79,5 +79,5 @@ public:
 
 void loadPlayer(player& p);
 void savePlayer(const player& p);
-void moovePlayer(player& p);
-void DrawPlayer(player& p);
+void updatePlayer(player& p);
+void drawPlayer(player& p);

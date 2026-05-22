@@ -4,5 +4,5 @@
 extern Camera2D camera;
 extern float cameraSpeed;
 
-void kameramoovment();
+void updateCamera();
 void initCamera();

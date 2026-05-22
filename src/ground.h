@@ -7,14 +7,14 @@
 
 using json = nlohmann::json;
 
-struct BodenDatenbank {
-    json alle_boden_arten;
+struct GroundDatabase {
+    json allGroundTypes;
     std::unordered_map<std::string, Texture2D> texturen;
     
-    void laden(const std::string& datei);
+    void load(const std::string& datei);
     bool exists(const std::string& typ) const;
     const json& get(const std::string& typ) const;
-    bool is_begehbar(const std::string& typ) const;
-    void lade_texturen();
-    void entlade_texturen();
+    bool isWalkable(const std::string& typ) const;
+    void loadTextures();
+    void unloadTextures();
 };

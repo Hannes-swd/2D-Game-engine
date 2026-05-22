@@ -1,0 +1,12 @@
+{
+    "default_typ": "concrete",
+    "name": "Meine Welt",
+    "tiles": {
+        "3,-3": "gras",
+        "3,-4": "gras",
+        "3,-5": "gras",
+        "4,-3": "gras",
+        "4,-4": "gras",
+        "4,-5": "gras"
+    }
+}

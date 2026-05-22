@@ -7,8 +7,8 @@
 class BaseItem {
 public:
     virtual ~BaseItem() = default;
-    virtual void onKlick()   {}
-    virtual void onInventar(){}
+    virtual void onClick()   {}
+    virtual void onInventory(){}
     virtual void onHand()    {}
     virtual void onUpdate()  {}
     virtual void zeichnen(int x, int y, Texture2D textur) {
@@ -19,13 +19,13 @@ public:
 };
 
 // Makro fuer manuelle Item-Registrierung (optional)
-// Verwendung: REGISTER_ITEM_CALLBACKS(id, klickFn, inventarFn, handFn)
-#define REGISTER_ITEM_CALLBACKS(id, klickFn, inventarFn, handFn) \
+// Verwendung: REGISTER_ITEM_CALLBACKS(id, clickFn, inventoryFn, handFn)
+#define REGISTER_ITEM_CALLBACKS(id, clickFn, inventoryFn, handFn) \
     do { \
         Item* _item = g_itemManager.getItem(id); \
         if (_item) { \
-            _item->onKlick   = klickFn; \
-            _item->onInventar= inventarFn; \
+            _item->onClick   = clickFn; \
+            _item->onInventory= inventoryFn; \
             _item->onHand    = handFn; \
         } \
     } while(0)

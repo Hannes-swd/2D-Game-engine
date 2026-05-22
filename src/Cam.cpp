@@ -17,7 +17,7 @@ void initCamera() {
     camera.zoom = BASE_ZOOM;
 }
 
-void kameramoovment() {
+void updateCamera() {
     camera.offset.x = GetScreenWidth()  / 2.0f;
     camera.offset.y = GetScreenHeight() / 2.0f;
 

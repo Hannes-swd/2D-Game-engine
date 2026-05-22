@@ -1,23 +1,21 @@
 #include "item api.h"
-#include "items.h"
 
 ITEM_BEGIN("grasItem", grasItem)
 
     void onHand() {
-        setBauModus(true);
+        setBuildMode(true);
     }
 
-    void onKlick() {
-        if (!isBauModus()) return;
-        if (linksklickPressed()) {
-            Vector2 t = getTileMaus();
+    void onClick() {
+        if (!isBuildMode()) return;
+        if (leftClickPressed()) {
+            Vector2 t = getTileMouse();
             setTile((int)t.x, (int)t.y, "gras");
-            g_spieler->removeFromInventory("grasItem", 1);
+            g_player->removeFromInventory("grasItem", 1);
         }
     }
 
-    void onInventar() {
-        
+    void onInventory() {
         // nichts
     }
 

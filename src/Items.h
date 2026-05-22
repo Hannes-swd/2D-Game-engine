@@ -11,26 +11,26 @@ struct Item {
     std::string name;
     std::string texturPfad;
     Texture2D textur;
-    std::string dateiPfad;
+    std::string filePath;
 
-    std::function<void()> onKlick;
-    std::function<void()> onInventar;
+    std::function<void()> onClick;
+    std::function<void()> onInventory;
     std::function<void()> onHand;
     std::function<void()> onUpdate;
 
-    // Taste die onKlick auslöst (Raylib KeyboardKey, z.B. KEY_E)
+    // Taste die onClick auslöst (Raylib KeyboardKey, z.B. KEY_E)
     // -1 = keine Taste gesetzt
-    int klickTaste = -1;
+    int clickKey = -1;
 
     Item() : textur{0} {}
 
-    void ladenTextur() {
+    void loadTexture() {
         if (!texturPfad.empty()) {
             textur = LoadTexture(texturPfad.c_str());
         }
     }
 
-    void entladenTextur() {
+    void unloadTexture() {
         if (textur.id != 0) {
             UnloadTexture(textur);
         }
@@ -40,12 +40,12 @@ struct Item {
 class ItemManager {
 private:
     std::unordered_map<std::string, std::unique_ptr<Item>> items;
-    std::unordered_map<std::string, std::function<void()>> funktionsRegistry;
+    std::unordered_map<std::string, std::function<void()>> functionRegistry;
 
 public:
     ~ItemManager() {
         for (auto& [id, item] : items) {
-            item->entladenTextur();
+            item->unloadTexture();
         }
     }
 
@@ -53,39 +53,39 @@ public:
         std::function<void()> fn;
         int taste = -1;
     };
-    std::unordered_map<std::string, FuncEintrag> funktionsRegistryEx;
+    std::unordered_map<std::string, FuncEintrag> functionRegistryEx;
 
-    // Registriert eine Funktion ohne Taste (onHand, onInventar, onUpdate)
-    void registriereFunktion(const std::string& name, std::function<void()> fn) {
-        funktionsRegistry[name] = fn;
+    // Registriert eine Funktion ohne Taste (onHand, onInventory, onUpdate)
+    void registerFunction(const std::string& name, std::function<void()> fn) {
+        functionRegistry[name] = fn;
     }
 
-    // Registriert eine Funktion MIT Taste (onKlick)
-    void registriereFunktionMitTaste(const std::string& name,
+    // Registriert eine Funktion MIT Taste (onClick)
+    void registerFunctionWithKey(const std::string& name,
                                       std::function<void()> fn,
                                       int taste) {
-        funktionsRegistryEx[name] = { fn, taste };
-        funktionsRegistry[name]   = fn;
+        functionRegistryEx[name] = { fn, taste };
+        functionRegistry[name]   = fn;
     }
 
-    std::function<void()> sucheFunc(const std::string& name) const {
-        auto it = funktionsRegistry.find(name);
-        if (it != funktionsRegistry.end()) return it->second;
+    std::function<void()> findFunc(const std::string& name) const {
+        auto it = functionRegistry.find(name);
+        if (it != functionRegistry.end()) return it->second;
         return nullptr;
     }
 
-    int sucheTaste(const std::string& name) const {
-        auto it = funktionsRegistryEx.find(name);
-        if (it != funktionsRegistryEx.end()) return it->second.taste;
+    int findKey(const std::string& name) const {
+        auto it = functionRegistryEx.find(name);
+        if (it != functionRegistryEx.end()) return it->second.taste;
         return -1;
     }
 
-    void registriereItem(std::unique_ptr<Item> item) {
+    void registerItem(std::unique_ptr<Item> item) {
         if (item) items[item->id] = std::move(item);
     }
 
-    void scanneUndLadeItems();
-    void ladeItemAusDatei(const std::string& dateiPfad);
+    void scanAndLoadItems();
+    void loadItemFromFile(const std::string& filePath);
 
     Item* getItem(const std::string& id) {
         auto it = items.find(id);
@@ -93,10 +93,10 @@ public:
         return nullptr;
     }
 
-    void fuehreAus(Item* item, const std::string& aktion) {
+    void execute(Item* item, const std::string& aktion) {
         if (!item) return;
-        if      (aktion == "onKlick"    && item->onKlick)    item->onKlick();
-        else if (aktion == "onInventar" && item->onInventar)  item->onInventar();
+        if      (aktion == "onClick"    && item->onClick)    item->onClick();
+        else if (aktion == "onInventory" && item->onInventory)  item->onInventory();
         else if (aktion == "onHand"     && item->onHand)      item->onHand();
         else if (aktion == "onUpdate"   && item->onUpdate)    item->onUpdate();
     }
@@ -106,7 +106,7 @@ public:
             DrawTexture(item->textur, x, y, WHITE);
     }
 
-    void updateAlleItems() {
+    void updateAllItems() {
         for (auto& [id, item] : items)
             if (item->onUpdate) item->onUpdate();
     }

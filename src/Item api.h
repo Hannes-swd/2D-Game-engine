@@ -8,15 +8,15 @@
 //      ITEM_BEGIN("gras", gras)
 //
 //          void onHand() {
-//              setBauModus(true);
+//              setBuildMode(true);
 //          }
 //
-//          void onKlick() {
-//              Vector2 t = getTileMaus();
+//          void onClick() {
+//              Vector2 t = getTileMouse();
 //              setTile(t.x, t.y, "gras");
 //          }
 //
-//          void onInventar() {
+//          void onInventory() {
 //              // leer lassen wenn nicht gebraucht
 //          }
 //
@@ -29,7 +29,7 @@
 //      ITEM_BEGIN("Beton",      Beton)
 //      ITEM_BEGIN("iron_sword", iron_sword)
 //
-//  Das war's. Kein extern, kein REGISTER_..., kein g_spieler.
+//  Das war's. Kein extern, kein REGISTER_..., kein g_player.
 // ═══════════════════════════════════════════════════════════════════════════════
 
 #include "Items.h"
@@ -41,30 +41,30 @@
 #include <functional>
 
 // ── Globale Variablen (einmalig in main.cpp definiert) ───────────────────────
-extern Map     welt;
-extern player* g_spieler;
+extern Map     world;
+extern player* g_player;
 
 // ── Hilfsfunktionen für Modder ───────────────────────────────────────────────
 
 // Setzt einen Tile auf der Karte
 inline void setTile(int x, int y, const std::string& typ) {
-    welt.setTile(x, y, typ);
+    world.setTile(x, y, typ);
 }
 
-// Tile-Position unter der Maus
-inline Vector2 getTileMaus(int tileGroesse = 32) {
+// Tile position under the mouse
+inline Vector2 getTileMouse(int tileGroesse = 32) {
     return getTileMousePos(tileGroesse);
 }
 
 // Baumodus (Raster + Vorschau)
-inline void  setBauModus(bool aktiv)  { if (g_spieler) g_spieler->setBauModus(aktiv); }
-inline bool  isBauModus()             { return g_spieler && g_spieler->isBauModus(); }
+inline void  setBuildMode(bool aktiv)  { if (g_player) g_player->setBuildMode(aktiv); }
+inline bool  isBuildMode()             { return g_player && g_player->isBuildMode(); }
 
-// Maus-Checks
-inline bool  isMausAufUI()            { return g_spieler && g_spieler->isMausAufUI(); }
-inline bool  linksklick()             { return IsMouseButtonDown(MOUSE_BUTTON_LEFT);  }
-inline bool  rechtsklick()            { return IsMouseButtonDown(MOUSE_BUTTON_RIGHT); }
-inline bool  linksklickPressed()      { return IsMouseButtonPressed(MOUSE_BUTTON_LEFT);  }
+// Mouse checks
+inline bool  IsMouseOnUi()            { return g_player && g_player->IsMouseOnUi(); }
+inline bool  leftClick()             { return IsMouseButtonDown(MOUSE_BUTTON_LEFT);  }
+inline bool  rightClick()            { return IsMouseButtonDown(MOUSE_BUTTON_RIGHT); }
+inline bool  leftClickPressed()      { return IsMouseButtonPressed(MOUSE_BUTTON_LEFT);  }
 
 // ── Interner Auto-Registrar ───────────────────────────────────────────────────
 struct _ItemAutoRegistrar {
@@ -75,23 +75,23 @@ struct _ItemAutoRegistrar {
     {
         std::string id(itemId);
 
-        // Wrapper für onKlick: automatisch UI-Check eingebaut
-        auto klickWrapper = [fnKlick]() {
-            if (!g_spieler || g_spieler->isMausAufUI()) return;
+        // Wrapper für onClick: automatisch UI-Check eingebaut
+        auto clickWrapper = [fnKlick]() {
+            if (!g_player || g_player->IsMouseOnUi()) return;
             fnKlick();
         };
 
-        // In der Registry speichern (für JSON-Binding)
-        getItemManager().registriereFunktion(id + "_onHand",     fnHand);
-        getItemManager().registriereFunktion(id + "_onKlick",    klickWrapper);
-        getItemManager().registriereFunktion(id + "_onInventar", fnInventar);
+        // In der Registry save (für JSON-Binding)
+        getItemManager().registerFunction(id + "_onHand",     fnHand);
+        getItemManager().registerFunction(id + "_onKlick",    clickWrapper);
+        getItemManager().registerFunction(id + "_onInventory", fnInventar);
 
         // Sofort ans Item binden falls es bereits aus JSON geladen wurde
         Item* item = getItemManager().getItem(id);
         if (item) {
             item->onHand     = fnHand;
-            item->onKlick    = klickWrapper;
-            item->onInventar = fnInventar;
+            item->onClick    = clickWrapper;
+            item->onInventory = fnInventar;
         }
     }
 };
@@ -99,7 +99,7 @@ struct _ItemAutoRegistrar {
 // ── ITEM_BEGIN / ITEM_END ─────────────────────────────────────────────────────
 //
 //  FIX LNK2005: Jedes Item bekommt einen eigenen Namespace (_item_impl_<tag>),
-//  damit onHand/onKlick/onInventar nicht über Translation Units hinweg
+//  damit onHand/onClick/onInventory nicht über Translation Units hinweg
 //  kollidieren.
 //
 //  tag  = gültiger C++-Bezeichner, z.B. gras, Beton, iron_sword
@@ -113,6 +113,6 @@ struct _ItemAutoRegistrar {
 
 #define ITEM_END(itemId)                                        \
         static _ItemAutoRegistrar _reg(                         \
-            itemId, onHand, onKlick, onInventar                 \
+            itemId, onHand, onClick, onInventory                 \
         );                                                      \
     } // end namespace

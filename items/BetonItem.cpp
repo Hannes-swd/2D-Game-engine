@@ -3,13 +3,12 @@
 ITEM_BEGIN("Beton", Beton)
 
     void onHand() {
-
     }
 
-    void onKlick() {
+    void onClick() {
     }
 
-    void onInventar() {
+    void onInventory() {
         // nichts
     }
 
