@@ -2,11 +2,30 @@
     "default_typ": "concrete",
     "name": "Meine Welt",
     "tiles": {
+        "3,-2": "gras",
         "3,-3": "gras",
         "3,-4": "gras",
         "3,-5": "gras",
+        "4,-2": "gras",
         "4,-3": "gras",
         "4,-4": "gras",
-        "4,-5": "gras"
+        "4,-5": "gras",
+        "5,-2": "gras",
+        "5,-3": "gras",
+        "5,-4": "gras",
+        "5,-5": "gras",
+        "6,-2": "gras",
+        "6,-3": "gras",
+        "6,-4": "gras",
+        "6,-5": "gras",
+        "7,-2": "gras",
+        "7,-3": "gras",
+        "7,-4": "gras",
+        "7,-5": "gras",
+        "7,-6": "gras",
+        "8,-2": "gras",
+        "8,-3": "gras",
+        "8,-4": "gras",
+        "8,-5": "gras"
     }
 }

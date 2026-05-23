@@ -1,0 +1,8 @@
+{
+    "House": {
+        "name": "haus1",
+        "textur": "assets/Images/Map/concrete.png",
+        "height": 1,
+        "with": 1
+    }
+}

@@ -1,16 +1,10 @@
 {
     "grasItem": {
         "name": "gras",
-        "textur": "assets/Images/Map/gras.png",
-        "onKlick": "grasItemklick" ,
-        "inInventar": "grasItemInInventar" ,
-        "inHand": "grasItemInHand"
+        "textur": "assets/Images/Map/gras.png"
     },
     "Beton": {
         "name": "Beton",
-        "textur": "assets/Images/Map/concrete.png",
-        "onKlick": "BetonItemklick" ,
-        "inInventar": "BetonItemInInventar" ,
-        "inHand": "BetonItemInHand"
+        "textur": "assets/Images/Map/concrete.png"
     }
 }
