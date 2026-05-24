@@ -16,7 +16,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
-# ── Quellen: src/ + items/ ────────────────────────────────────────────────────
+# ── Quellen: src/ + items/ + buildings/ ──────────────────────────────────────
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cc"
@@ -24,6 +24,9 @@ file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/items/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/items/*.cc"
     "${CMAKE_CURRENT_SOURCE_DIR}/items/*.cxx"
+    "${CMAKE_CURRENT_SOURCE_DIR}/buildings/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/buildings/*.cc"
+    "${CMAKE_CURRENT_SOURCE_DIR}/buildings/*.cxx"
 )
 
 message(STATUS "Gefundene Quell-Dateien:")

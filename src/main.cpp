@@ -12,6 +12,7 @@
 #include "Items.h"
 #include "Mouse tile.h"
 #include "item api.h"
+#include "Buildings.h"
 
 
 using json = nlohmann::json;
@@ -65,6 +66,7 @@ int main()
     initCamera();
 
     g_itemManager.scanAndLoadItems();
+    g_buildingManager.scanAndLoadBuildings();
 
     // ── Map load ─────────────────────────────────────────────────────────────
     {
@@ -90,6 +92,7 @@ int main()
     {
         float delta = GetFrameTime();
         updatePlayer(localPlayer);
+        updateBuildings(world, g_buildingManager, TILE_SIZE);
         updateCamera();
 
         speicherTimer += delta;
@@ -103,6 +106,7 @@ int main()
             ClearBackground(WHITE);
             BeginMode2D(camera);
                 draw_ground(world, ground, TILE_SIZE);
+                draw_buildings(world, g_buildingManager, TILE_SIZE);
                 drawBuildModeGrid(localPlayer, TILE_SIZE);
                 drawPlayer(localPlayer);
             EndMode2D();

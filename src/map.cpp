@@ -43,6 +43,15 @@ void Map::save(const std::string& datei) const {
         ausgabe["tiles"][key] = wert;
     }
     ausgabe["default_typ"] = defaultType;
+    for (const auto& [key, pb] : buildings) {
+        ausgabe["buildings"][key]["buildingId"]  = pb.buildingId;
+        ausgabe["buildings"][key]["x"]           = pb.x;
+        ausgabe["buildings"][key]["y"]           = pb.y;
+        ausgabe["buildings"][key]["width"]       = pb.width;
+        ausgabe["buildings"][key]["height"]      = pb.height;
+        ausgabe["buildings"][key]["instanceId"]  = pb.instanceId;
+        ausgabe["buildings"][key]["state"]       = pb.state;
+    }
 
     std::ofstream f(datei);
     if (f.is_open()) {
@@ -74,6 +83,20 @@ void Map::load(const std::string& datei) {
         if (input.contains("default_typ")) {
             defaultType = input["default_typ"];
         }
+
+        if (input.contains("buildings")) {
+            for (auto& [key, bData] : input["buildings"].items()) {
+                PlacedBuilding pb;
+                pb.buildingId = bData.value("buildingId", "");
+                pb.x          = bData.value("x",          0);
+                pb.y          = bData.value("y",          0);
+                pb.width      = bData.value("width",      1);
+                pb.height     = bData.value("height",     1);
+                pb.instanceId = bData.value("instanceId", "");
+                pb.state      = bData.value("state",      "");
+                buildings[key] = pb;
+            }
+        }
         
         std::cout << "Map geladen: " << datei
                   << " (" << tiles.size() << " tiles)" << std::endl;
@@ -83,8 +106,24 @@ void Map::load(const std::string& datei) {
     }
 }
 
+void Map::placeBuilding(const PlacedBuilding& pb) {
+    std::string key = std::to_string(pb.x) + "," + std::to_string(pb.y);
+    buildings[key] = pb;
+}
+
+PlacedBuilding* Map::getBuildingAt(int x, int y) {
+    for (auto& [key, pb] : buildings) {
+        if (x >= pb.x && x < pb.x + pb.width &&
+            y >= pb.y && y < pb.y + pb.height) {
+            return &pb;
+        }
+    }
+    return nullptr;
+}
+
 void Map::clear() {
     tiles.clear();
+    buildings.clear();
 }
 
 int Map::getSize() const {

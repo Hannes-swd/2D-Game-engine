@@ -1,4 +1,24 @@
 {
+    "buildings": {
+        "5,-4": {
+            "buildingId": "House",
+            "height": 1,
+            "instanceId": "House_5_-4",
+            "state": "",
+            "width": 2,
+            "x": 5,
+            "y": -4
+        },
+        "5,-6": {
+            "buildingId": "House",
+            "height": 1,
+            "instanceId": "House_5_-6",
+            "state": "",
+            "width": 2,
+            "x": 5,
+            "y": -6
+        }
+    },
     "default_typ": "concrete",
     "name": "Meine Welt",
     "tiles": {
@@ -10,19 +30,28 @@
         "4,-3": "gras",
         "4,-4": "gras",
         "4,-5": "gras",
+        "4,-6": "gras",
+        "4,-7": "gras",
         "5,-2": "gras",
         "5,-3": "gras",
         "5,-4": "gras",
         "5,-5": "gras",
+        "5,-6": "gras",
+        "5,-7": "gras",
         "6,-2": "gras",
         "6,-3": "gras",
         "6,-4": "gras",
         "6,-5": "gras",
+        "6,-6": "gras",
+        "6,-7": "gras",
+        "6,-8": "gras",
         "7,-2": "gras",
         "7,-3": "gras",
         "7,-4": "gras",
         "7,-5": "gras",
         "7,-6": "gras",
+        "7,-7": "gras",
+        "7,-9": "gras",
         "8,-2": "gras",
         "8,-3": "gras",
         "8,-4": "gras",

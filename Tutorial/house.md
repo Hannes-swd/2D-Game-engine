@@ -1,213 +1,195 @@
-# Gebäude-System – Designbeschreibung
+# How to Create a Building
 
-> Wie das Item-System, aber für Gebäude mit eigenen Callbacks, Weltintegration und Kollision.
-
----
-
-## 1. Datenstruktur (`Building`)
-
-Ähnlich wie `Item` brauchst du eine `Building`-Struct mit:
-
-- `id`, `name`, `texturPfad`, `Texture2D textur`
-- `width`, `height` (in Tiles – das sind deine Gebäudemaße)
-- Callbacks: `onPlace`, `onClick`, `onEnter`, `onLeave`, `onUpdate`
-- Optional: `isWalkable` (blockiert der Boden darunter?)
-- Optional: `isSolid` (kollidiert der Spieler damit?)
+> This guide uses a **House** as a practical example to walk you through the process.
 
 ---
 
-## 2. Manager (`BuildingManager`)
+## Step 1 — Register your building in `houses.json`
 
-Exakt wie `ItemManager`, mit:
-
-- `unordered_map<string, unique_ptr<Building>>` für alle geladenen Gebäude
-- `functionRegistry` für Callback-Binding (gleiche Logik wie bei Items)
-- `scanAndLoadBuildings()` liest aus `assets/json/Buildings/houses.json` (und weiteren JSON-Dateien im Ordner)
-- `getBuilding(id)` gibt einen Pointer zurück
-- Singleton via `getBuildingManager()`
-
----
-
-## 3. JSON-Loader
-
-Beim Laden einer `.json`-Datei aus dem `Buildings`-Ordner liest du:
-
-- `name`, `textur` (mit `normalizePath` wie bei Grounds/Items)
-- `width` und `height` — Hinweis: im aktuellen JSON steht `"with"`, das ist ein Tippfehler, entscheid dich für `"width"`
-- Optional: `walkable`, `solid`, Callback-Namen als Strings (wie bei Items)
-
-Beispiel-JSON (korrigiert):
+Open [`assets/json/Buildings/houses.json`](assets/json/Buildings/houses.json) and add a new entry:
 
 ```json
-{
-    "House": {
-        "name": "haus1",
-        "textur": "assets/Images/Map/concrete.png",
-        "height": 3,
-        "width": 4
+"House": {
+    "name": "Small House",
+    "textur": "assets/Images/Buildings/Haus1.png",
+    "width": 2,
+    "height": 1,
+    "solid": true
+}
+```
+
+| Field | Description |
+|---|---|
+| `name` | Display name of the building |
+| `textur` | Path to the building's sprite |
+| `width` | Width in tiles |
+| `height` | Height in tiles |
+| `solid` | Whether the player collides with it |
+
+> **Note:** The engine automatically binds all six callbacks from your `.cpp` file as long as the `BUILDING_BEGIN` ID matches the key in `houses.json`.
+
+---
+
+## Step 2 — Create the building source file
+
+Inside the [`buildings/`](buildings/) folder, create a new `.cpp` file (e.g. `House.cpp`).
+
+All six callback functions must always be named exactly as shown:
+
+```cpp
+#include "building_api.h"
+
+BUILDING_BEGIN("House", House)
+
+    // Called every frame while the mouse is over this building.
+    void onHover() {
+
     }
+
+    // Called when the player clicks on this building.
+    void onClick() {
+
+    }
+
+    // Called once when this building is placed in the world.
+    void onPlace() {
+
+    }
+
+    // Called when the player walks onto the building's tiles.
+    void onEnter() {
+
+    }
+
+    // Called when the player walks off the building's tiles.
+    void onLeave() {
+
+    }
+
+    // Called every frame for every placed instance of this building type.
+    void onUpdate() {
+
+    }
+
+BUILDING_END("House")
+```
+
+> **Important:** The ID string in `BUILDING_BEGIN` and `BUILDING_END` must **exactly match** the key in `houses.json` — here `"House"`. The second argument (here `House`) must be a valid C++ identifier with no spaces or special characters.
+
+---
+
+## Step 3 — Create an item that places the building
+
+Buildings are placed through items. Open [`items/`](items/) and create or edit an item `.cpp` file.
+
+Use `setBuildMode(true)` in `onHand()` to show the placement grid, then call `placeBuilding()` in `onClick()`:
+
+```cpp
+#include "building_api.h"
+
+ITEM_BEGIN("HouseItem", HouseItem)
+
+    void onHand() {
+        setBuildMode(true);
+    }
+
+    void onClick() {
+        if (!isBuildMode()) return;
+        if (leftClickPressed()) {
+            Vector2 t = getTileMouse();
+            placeBuilding("House", (int)t.x, (int)t.y);
+        }
+    }
+
+    void onInventory() {
+    }
+
+ITEM_END("HouseItem")
+```
+
+Don't forget to register the item in [`assets/json/items/item.json`](assets/json/items/item.json):
+
+```json
+"HouseItem": {
+    "name": "House",
+    "textur": "assets/Images/Buildings/Haus1.png"
 }
 ```
 
 ---
 
-## 4. Callback-Makro (`BUILDING_BEGIN` / `BUILDING_END`)
+## How it connects
 
-Du erstellst eine `building_api.h` analog zu `item_api.h`. Sie enthält:
+```
+houses.json        BUILDING_BEGIN id     House.cpp
+───────────────    ─────────────────     ─────────────────────────
+"House"        ──► "House"          ──► void onHover()  { }
+                                    ──► void onClick()  { }
+                                    ──► void onPlace()  { }
+                                    ──► void onEnter()  { }
+                                    ──► void onLeave()  { }
+                                    ──► void onUpdate() { }
+```
 
-- `BUILDING_BEGIN("House", House)` → öffnet einen eigenen Namespace `_building_impl_House`
-- `BUILDING_END("House")` → registriert den Auto-Registrar
-- Fünf fest vorgegebene Methoden die der Modder befüllt:
+---
 
-| Methode | Wann sie aufgerufen wird |
+## Callback reference
+
+| Callback | When it runs |
 |---|---|
-| `onPlace()` | Gebäude wird in der Welt platziert |
-| `onClick()` | Spieler klickt auf das Gebäude |
-| `onEnter()` | Spieler betritt das Gebäude |
-| `onLeave()` | Spieler verlässt das Gebäude |
-| `onUpdate()` | Jeden Frame (Animationen, Logik) |
+| `onHover()` | Every frame the mouse is over the building |
+| `onClick()` | When the player left-clicks the building |
+| `onPlace()` | Once, at the moment the building is placed |
+| `onEnter()` | When the player walks onto the building's tiles |
+| `onLeave()` | When the player walks off the building's tiles |
+| `onUpdate()` | Every frame, for every placed instance of this type |
 
-Eine Modder-Datei sieht dann so aus:
+---
+
+## Functions available inside callbacks
+
+| Function | Description |
+|---|---|
+| `setBuildMode(bool)` | Enable / disable the placement grid |
+| `isBuildMode()` | Returns `true` if build mode is active |
+| `getTileMouse()` | Tile coordinates under the mouse cursor |
+| `leftClickPressed()` | `true` on the first frame of a left click |
+| `leftClick()` | `true` every frame the left button is held |
+| `rightClick()` | `true` every frame the right button is held |
+| `IsMouseOnUi()` | `true` if the mouse is over the hotbar or inventory |
+| `setTile(x, y, type)` | Place a ground tile at the given coordinates |
+| `getState()` | Returns the instance's current state string |
+| `setState(value)` | Sets the instance's state string |
+| `getInstanceId()` | Returns the unique ID of this placed instance |
+| `placeBuilding(id, x, y)` | Place a building at the given tile coordinates |
+
+---
+
+## Full example — House with hover tooltip
 
 ```cpp
-// items/House.cpp
 #include "building_api.h"
 
 BUILDING_BEGIN("House", House)
 
-    void onPlace() {
-        // z.B. Sound abspielen
+    void onHover() {
+        // draw a tooltip above the building
+        DrawText("[Click] Enter", 10, 10, 20, WHITE);
     }
 
     void onClick() {
-        // z.B. Tür öffnen
+        // switch to the interior dimension when clicked
+        // (interior system not yet implemented)
     }
 
-    void onEnter() {
-        // z.B. Innenraum laden
-    }
-
-    void onLeave() {
-        // z.B. Außenwelt wieder einblenden
-    }
-
-    void onUpdate() {
-        // leer lassen wenn nicht gebraucht
-    }
+    void onPlace()  { }
+    void onEnter()  { }
+    void onLeave()  { }
+    void onUpdate() { }
 
 BUILDING_END("House")
 ```
 
 ---
 
-## 5. Karte / Welt-Integration
-
-Gebäude sind **keine Tiles** – sie sind eigene Objekte auf der Karte.
-
-### `PlacedBuilding`-Struct
-
-Eine neue Struct die ein platziertes Gebäude in der Welt beschreibt:
-
-- `buildingId` (z.B. `"House"`)
-- `x`, `y` (Ursprungs-Tile oben-links)
-
-### Erweiterung der `Map`-Struct
-
-- Neue `unordered_map<string, PlacedBuilding> placedBuildings` mit Key `"x,y"`
-- `placeBuilding(id, x, y)` – fügt ein Gebäude ein, prüft ob der Platz frei ist
-- `removeBuilding(x, y)` – entfernt ein Gebäude
-- `getBuildingAt(x, y)` – gibt Pointer auf `PlacedBuilding` zurück (oder `nullptr`)
-
-### Erweiterung der `world.json`
-
-`Map::save()` und `Map::load()` bekommen einen zusätzlichen `"buildings"`-Block:
-
-```json
-{
-    "tiles": { ... },
-    "buildings": {
-        "5,3": { "id": "House", "x": 5, "y": 3 },
-        "12,7": { "id": "House", "x": 12, "y": 7 }
-    }
-}
-```
-
----
-
-## 6. Zeichnen
-
-Eine neue Funktion `draw_buildings(const Map& world, const BuildingDatabase& db, int tileSize)` – analog zu `draw_ground()`:
-
-- Iteriert über `placedBuildings`
-- Zeichnet die Textur skaliert auf `width * tileSize` × `height * tileSize` Pixel
-- Wird in der Haupt-Schleife **nach** `draw_ground()` aufgerufen, damit Gebäude über dem Boden liegen
-
----
-
-## 7. Kollision & Betreten
-
-### Kollision
-
-Wenn der Spieler ein Tile betritt das von einem Gebäude belegt ist:
-
-- `isSolid == true` → Spieler kann nicht rein (Wand), Bewegung blockieren
-- `isSolid == false` → Spieler kann hindurch (Innenraum, Tor)
-
-Dafür prüfst du in `updatePlayer()` nach der Bewegung: liegt die neue Spielerposition auf einem Tile das ein solides Gebäude belegt? Wenn ja, Bewegung zurücksetzen.
-
-### Betreten / Verlassen
-
-- Im `player` merkst du dir `currentBuildingId` (leer = draußen)
-- Jeden Frame in `updatePlayer()`: Spielerposition → Tile-Koordinate → `world.getBuildingAt(tx, ty)`
-- Wenn das Ergebnis sich vom vorherigen Frame unterscheidet → `onLeave()` des alten, `onEnter()` des neuen Gebäudes auslösen
-
----
-
-## 8. Platzier-System (Hotbar-Integration)
-
-Ein Gebäude wird über ein ganz normales **Item** in der Hotbar platziert, z.B. `"HouseItem"`. Die Item-Datei (`HouseItem.cpp`) nutzt das bestehende Item-System:
-
-- `onHand()` → `setBuildMode(true)` (wie beim Gras-Item)
-- `onClick()` → `world.placeBuilding("House", tileX, tileY)`, danach Item aus Inventar entfernen
-
-Das hält beide Systeme sauber getrennt: **Items** sind das Werkzeug, **Buildings** sind das Ergebnis.
-
-### Baumodus-Vorschau
-
-In `drawBuildModeGrid()` (in `Mouse_tile.h`) gibt es bereits TODO-Kommentare für `tileBreite`/`tileHoehe`. Dort liest du die Gebäudegröße aus dem aktiven Item (oder direkt aus dem `BuildingManager`) und zeichnest den Vorschau-Rahmen entsprechend breiter:
-
-- Rahmen: `width * tileSize` × `height * tileSize`
-- Textur-Vorschau: skaliert auf dieselbe Größe, halbtransparent
-
----
-
-## 9. Reihenfolge der Implementierung
-
-Schritt für Schritt, damit jede Phase testbar ist:
-
-1. **`Building`-Struct** und **`BuildingManager`** schreiben (analog zu `Item` / `ItemManager`)
-2. **JSON-Loader** für den `Buildings`-Ordner (analog zu `Items.cpp`)
-3. **`building_api.h`** mit `BUILDING_BEGIN` / `BUILDING_END` Makros schreiben
-4. **`PlacedBuilding`** in die `Map`-Struct einbauen + `world.json` erweitern
-5. **`draw_buildings()`** Funktion schreiben und in die Hauptschleife einbinden
-6. **`HouseItem.cpp`** als Platzier-Item schreiben (nutzt normales Item-System)
-7. **`House.cpp`** mit Gebäude-Callbacks schreiben (nutzt `building_api.h`)
-8. **Kollision** in `updatePlayer()` einbauen
-9. **`onEnter`/`onLeave`** in `updatePlayer()` einbauen
-
----
-
-## Zusammenfassung
-
-```
-Item-System          Building-System
-──────────────────   ──────────────────────────────
-Item                 Building
-ItemManager          BuildingManager
-item_api.h           building_api.h
-ITEM_BEGIN/END       BUILDING_BEGIN/END
-inventory slot       PlacedBuilding in Map
-Hotbar → onClick()   HouseItem.cpp → placeBuilding()
-```
-
-Das Schlüsselprinzip: Items **platzieren** Gebäude, aber Gebäude haben ihr **eigenes Callback-System**.
+That's it! Once `houses.json` and your `.cpp` file are in place, the engine will automatically register and load your new building.
