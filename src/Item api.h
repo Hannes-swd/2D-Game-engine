@@ -44,6 +44,25 @@
 extern Map     world;
 extern player* g_player;
 
+// ── Tooltip-System ────────────────────────────────────────────────────────────
+// setPendingTooltip() in onHover() aufrufen; main.cpp zeichnet es nach EndMode2D.
+#include <string>
+namespace _tooltip_impl {
+    inline std::string& pendingTooltip() {
+        static std::string s;
+        return s;
+    }
+}
+inline void setPendingTooltip(const std::string& text) {
+    _tooltip_impl::pendingTooltip() = text;
+}
+// Intern: liest und leert den Tooltip (aufgerufen von main.cpp)
+inline std::string consumeTooltip() {
+    std::string t = _tooltip_impl::pendingTooltip();
+    _tooltip_impl::pendingTooltip().clear();
+    return t;
+}
+
 // ── Hilfsfunktionen für Modder ───────────────────────────────────────────────
 
 // Setzt einen Tile auf der Karte

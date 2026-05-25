@@ -1,29 +1,22 @@
-#include <iostream>
 #include "building_api.h"
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  Haus  –  Klick betritt die house_interior-Dimension
+// ─────────────────────────────────────────────────────────────────────────────
 
 BUILDING_BEGIN("House", House)
 
     void onHover() {
-        // Standard: Engine zeigt automatisch Outline + "[Klick] Betreten"
-        
+        setPendingTooltip("[Klick] Haus betreten");
     }
 
     void onClick() {
-        // Standard: Engine wechselt automatisch zur Innenwelt (wenn interior_size gesetzt)
+        switchDimension("house_interior");
     }
 
-    void onPlace() {
-        std::cout << "auf haus";
-
-    }
-
-    void onEnter() {
-    }
-
-    void onLeave() {
-    }
-
-    void onUpdate() {
-    }
+    void onPlace()  { }
+    void onEnter()  { }
+    void onLeave()  { }
+    void onUpdate() { }
 
 BUILDING_END("House")

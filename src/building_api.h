@@ -22,8 +22,16 @@
 
 #include "item api.h"   // setBuildMode, getTileMouse, leftClickPressed, g_player, world, ...
 #include "Buildings.h"  // Building, BuildingManager, PlacedBuilding, g_buildingManager
+#include "Dimension.h"  // switchDimension, g_dimensionManager
 #include <string>
 #include <functional>
+
+// ── Instance-ID des aktuell interagierten Buildings ───────────────────────────
+// Gibt den instanceId des Buildings zurueck, das gerade hover/click ausloest.
+// Nur gueltig innerhalb von onHover() und onClick().
+inline std::string getInstanceId() {
+    return g_activePlacedBuilding ? g_activePlacedBuilding->instanceId : "";
+}
 
 // ── Gebäude platzieren ───────────────────────────────────────────────────────
 inline void placeBuilding(const std::string& buildingId, int x, int y) {

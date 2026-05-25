@@ -70,3 +70,7 @@ inline BuildingManager& getBuildingManager() {
 
 void draw_buildings(const Map& world, BuildingManager& mgr, int tileSize);
 void updateBuildings(Map& world, BuildingManager& mgr, int tileSize);
+
+// Zeigt auf das PlacedBuilding das gerade hover/click-Callbacks auslöst.
+// Wird in updateBuildings gesetzt – in Callbacks via getInstanceId() lesbar.
+extern PlacedBuilding* g_activePlacedBuilding;

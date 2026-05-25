@@ -8,6 +8,8 @@
 
 extern player* g_player;
 
+PlacedBuilding* g_activePlacedBuilding = nullptr;
+
 using json = nlohmann::json;
 
 extern std::string assetPath(const std::string& relativ);
@@ -103,11 +105,15 @@ void updateBuildings(Map& world, BuildingManager& mgr, int tileSize) {
     Building* b = mgr.getBuilding(pb->buildingId);
     if (!b) return;
 
+    g_activePlacedBuilding = pb;
+
     if (b->onHover) b->onHover();
 
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
         if (b->onClick) b->onClick();
     }
+
+    g_activePlacedBuilding = nullptr;
 }
 
 void draw_buildings(const Map& world, BuildingManager& mgr, int tileSize) {

@@ -13,6 +13,7 @@
 #include "Mouse tile.h"
 #include "item api.h"
 #include "Buildings.h"
+#include "Dimension.h"
 
 
 using json = nlohmann::json;
@@ -67,6 +68,7 @@ int main()
 
     g_itemManager.scanAndLoadItems();
     g_buildingManager.scanAndLoadBuildings();
+    g_dimensionManager.load(assetPath("json/Map/dimensions.json"));
 
     // ── Map load ─────────────────────────────────────────────────────────────
     {
@@ -92,17 +94,29 @@ int main()
     {
         float delta = GetFrameTime();
         updatePlayer(localPlayer);
-        updateBuildings(world, g_buildingManager, TILE_SIZE);
+        if (!g_dimensionManager.isInDimension())
+            updateBuildings(world, g_buildingManager, TILE_SIZE);
+        g_dimensionManager.update();
         updateCamera();
 
         speicherTimer += delta;
         if (speicherTimer >= SPEICHER_INTERVALL) {
             world.save(assetPath("json/Map/world.json"));
             savePlayer(localPlayer);
+            g_dimensionManager.saveAll(assetPath("json/Map/dimensions/"));
             speicherTimer = 0.0f;
         }
 
         BeginDrawing();
+        if (g_dimensionManager.isInDimension()) {
+            DimensionData* dim = g_dimensionManager.getCurrentDimension();
+            ClearBackground(dim->backgroundColor);
+            BeginMode2D(camera);
+                draw_dimension(*dim, ground, TILE_SIZE);
+                if (dim->onDraw) dim->onDraw();
+                drawPlayer(localPlayer);
+            EndMode2D();
+        } else {
             ClearBackground(WHITE);
             BeginMode2D(camera);
                 draw_ground(world, ground, TILE_SIZE);
@@ -110,6 +124,13 @@ int main()
                 drawBuildModeGrid(localPlayer, TILE_SIZE);
                 drawPlayer(localPlayer);
             EndMode2D();
+            // Tooltip von Building-onHover zeichnen
+            std::string tip = consumeTooltip();
+            if (!tip.empty()) {
+                Vector2 mouse = GetMousePosition();
+                DrawText(tip.c_str(), (int)mouse.x + 12, (int)mouse.y - 20, 14, BLACK);
+            }
+        }
             drawInventory(localPlayer);
         EndDrawing();
 
@@ -118,6 +139,7 @@ int main()
 
     world.save(assetPath("json/Map/world.json"));
     savePlayer(localPlayer);
+    g_dimensionManager.saveAll(assetPath("json/Map/dimensions/"));
     ground.unloadTextures();
     CloseWindow();
     return 0;
