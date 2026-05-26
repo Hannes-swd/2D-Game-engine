@@ -138,3 +138,21 @@ message(STATUS "=== 2DGameEngine Konfiguration ===")
 message(STATUS "Build-Dir:   ${CMAKE_BINARY_DIR}")
 message(STATUS "Bin-Dir:     ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
 message(STATUS "Assets-Dir:  ${CMAKE_SOURCE_DIR}/assets")
+
+# ── Reset-World Tool ──────────────────────────────────────────────────────────
+add_executable(reset_world "${CMAKE_SOURCE_DIR}/tools/reset_world.cpp")
+set_target_properties(reset_world PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY         "${CMAKE_SOURCE_DIR}"
+    RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CMAKE_SOURCE_DIR}"
+    RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_SOURCE_DIR}"
+)
+target_compile_features(reset_world PRIVATE cxx_std_17)
+target_link_libraries(reset_world PRIVATE nlohmann_json::nlohmann_json)
+target_compile_definitions(reset_world PRIVATE
+    ASSETS_PATH="${CMAKE_SOURCE_DIR}/assets"
+)
+if(WIN32)
+    target_compile_definitions(reset_world PRIVATE
+        WIN32_LEAN_AND_MEAN NOMINMAX _CRT_SECURE_NO_WARNINGS
+    )
+endif()

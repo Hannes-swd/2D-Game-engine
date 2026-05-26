@@ -1,8 +1,4 @@
 {
     "id": "house_interior",
-    "tiles": {
-        "1,7": "gras",
-        "2,8": "gras",
-        "3,7": "gras"
-    }
+    "tiles": {}
 }
