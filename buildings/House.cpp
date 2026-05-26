@@ -11,7 +11,7 @@ BUILDING_BEGIN("House", House)
     }
 
     void onClick() {
-        switchDimension("house_interior");
+        enterInterior("house_interior");
     }
 
     void onPlace()  { }

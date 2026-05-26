@@ -32,9 +32,10 @@ void DimensionManager::load(const std::string& jsonPath) {
         DimensionData dim;
         dim.id          = id;
         dim.name        = dData.value("name", id);
-        dim.width       = dData.value("width",  4);
-        dim.height      = dData.value("height", 10);
-        dim.defaultTile = dData.value("defaultTile", "gras");
+        dim.width          = dData.value("width",  4);
+        dim.height         = dData.value("height", 10);
+        dim.defaultTile    = dData.value("defaultTile", "gras");
+        dim.sharedInterior = dData.value("sharedInterior", true);
 
         if (dData.contains("backgroundColor") && dData["backgroundColor"].is_array()
                 && dData["backgroundColor"].size() >= 3) {
@@ -98,6 +99,16 @@ void DimensionManager::saveDimensionTiles(const std::string& id, const std::stri
         f << out.dump(4);
         std::cout << "[DimensionManager] Tiles gespeichert: " << id << std::endl;
     }
+}
+
+void DimensionManager::cloneTemplate(const std::string& templateId, const std::string& newId) {
+    if (dimensions.count(newId)) return;
+    DimensionData* tmpl = getDimension(templateId);
+    if (!tmpl) return;
+    DimensionData clone = *tmpl;
+    clone.id = newId;
+    clone.tiles.clear();
+    dimensions[newId] = std::move(clone);
 }
 
 void DimensionManager::saveAll(const std::string& basePath) const {

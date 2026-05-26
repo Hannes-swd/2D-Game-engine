@@ -24,6 +24,7 @@ struct DimensionData {
     int   height           = 10;
     Color backgroundColor  = { 50, 30, 20, 255 };
     std::string defaultTile = "gras";
+    bool sharedInterior = true;
     std::unordered_map<std::string, std::string> tiles;
 
     std::function<void()> onEnter;   // Spieler betritt die Dimension
@@ -46,6 +47,7 @@ public:
     void loadDimensionTiles(const std::string& id, const std::string& basePath);
     void saveDimensionTiles(const std::string& id, const std::string& basePath) const;
     void saveAll(const std::string& basePath) const;
+    void cloneTemplate(const std::string& templateId, const std::string& newId);
 
     DimensionData*       getDimension(const std::string& id);
     const DimensionData* getDimension(const std::string& id) const;

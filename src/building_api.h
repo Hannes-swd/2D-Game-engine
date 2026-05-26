@@ -33,6 +33,21 @@ inline std::string getInstanceId() {
     return g_activePlacedBuilding ? g_activePlacedBuilding->instanceId : "";
 }
 
+// ── Gebäude-Interior betreten (respektiert sharedInterior aus dimensions.json) ─
+// sharedInterior=true  → alle Instanzen dieses Typs teilen dieselbe Dimension
+// sharedInterior=false → jede Instanz bekommt eine eigene Kopie der Dimension
+inline void enterInterior(const std::string& templateId) {
+    DimensionData* tmpl = g_dimensionManager.getDimension(templateId);
+    if (!tmpl) return;
+    if (tmpl->sharedInterior) {
+        switchDimension(templateId);
+    } else {
+        std::string instanceDimId = templateId + "_" + getInstanceId();
+        g_dimensionManager.cloneTemplate(templateId, instanceDimId);
+        switchDimension(instanceDimId);
+    }
+}
+
 // ── Gebäude platzieren ───────────────────────────────────────────────────────
 inline void placeBuilding(const std::string& buildingId, int x, int y) {
     Building* b = g_buildingManager.getBuilding(buildingId);
