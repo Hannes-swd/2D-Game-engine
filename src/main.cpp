@@ -97,12 +97,27 @@ int main()
         if (!g_dimensionManager.isInDimension())
             updateBuildings(world, g_buildingManager, TILE_SIZE);
         g_dimensionManager.update();
+        // Kamera nach möglichem Dimensions-Wechsel synchronisieren
+        {
+            Vector2 pos = localPlayer.Get_position();
+            camera.target.x = pos.x;
+            camera.target.y = pos.y;
+        }
         updateCamera();
 
         speicherTimer += delta;
         if (speicherTimer >= SPEICHER_INTERVALL) {
             world.save(assetPath("json/Map/world.json"));
-            savePlayer(localPlayer);
+            if (g_dimensionManager.isInDimension()) {
+                // Weltposition speichern, nicht die Positions innerhalb der Dimension
+                Vector2 dimPos = localPlayer.Get_position();
+                localPlayer.setPositionF(g_dimensionManager.getSavedWorldX(),
+                                          g_dimensionManager.getSavedWorldY());
+                savePlayer(localPlayer);
+                localPlayer.setPositionF(dimPos.x, dimPos.y);
+            } else {
+                savePlayer(localPlayer);
+            }
             g_dimensionManager.saveAll(assetPath("json/Map/dimensions/"));
             speicherTimer = 0.0f;
         }
@@ -114,6 +129,7 @@ int main()
             BeginMode2D(camera);
                 draw_dimension(*dim, ground, TILE_SIZE);
                 if (dim->onDraw) dim->onDraw();
+                drawBuildModeGrid(localPlayer, TILE_SIZE, 20, 0, 0, dim->width - 1, dim->height - 1);
                 drawPlayer(localPlayer);
             EndMode2D();
         } else {
@@ -138,7 +154,15 @@ int main()
     }
 
     world.save(assetPath("json/Map/world.json"));
-    savePlayer(localPlayer);
+    if (g_dimensionManager.isInDimension()) {
+        Vector2 dimPos = localPlayer.Get_position();
+        localPlayer.setPositionF(g_dimensionManager.getSavedWorldX(),
+                                  g_dimensionManager.getSavedWorldY());
+        savePlayer(localPlayer);
+        localPlayer.setPositionF(dimPos.x, dimPos.y);
+    } else {
+        savePlayer(localPlayer);
+    }
     g_dimensionManager.saveAll(assetPath("json/Map/dimensions/"));
     ground.unloadTextures();
     CloseWindow();

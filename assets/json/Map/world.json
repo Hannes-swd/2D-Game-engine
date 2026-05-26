@@ -1,8 +1,43 @@
 {
-    "buildings": {},
+    "buildings": {
+        "1,-2": {
+            "buildingId": "House",
+            "height": 1,
+            "instanceId": "House_1_-2",
+            "state": "",
+            "width": 2,
+            "x": 1,
+            "y": -2
+        }
+    },
     "default_typ": "concrete",
     "name": "Meine Welt",
     "tiles": {
-        "0,0": "gras"
+        "0,-1": "gras",
+        "0,-2": "gras",
+        "0,-3": "gras",
+        "0,0": "gras",
+        "0,1": "gras",
+        "0,2": "gras",
+        "1,-1": "gras",
+        "1,-2": "gras",
+        "1,-3": "gras",
+        "1,0": "gras",
+        "1,1": "gras",
+        "1,2": "gras",
+        "2,-1": "gras",
+        "2,-2": "gras",
+        "2,-3": "gras",
+        "2,0": "gras",
+        "2,1": "gras",
+        "2,2": "gras",
+        "3,-1": "gras",
+        "3,-2": "gras",
+        "3,-3": "gras",
+        "3,0": "gras",
+        "4,-1": "gras",
+        "4,-2": "gras",
+        "4,-3": "gras",
+        "4,0": "gras"
     }
 }

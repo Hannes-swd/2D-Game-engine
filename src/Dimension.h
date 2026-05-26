@@ -55,6 +55,8 @@ public:
 
     bool               isInDimension() const { return !currentId.empty(); }
     const std::string& getCurrentId()  const { return currentId; }
+    float              getSavedWorldX() const { return savedWorldX; }
+    float              getSavedWorldY() const { return savedWorldY; }
 
     void switchTo(const std::string& id);
     void update();
