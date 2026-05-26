@@ -4,7 +4,6 @@
         "textur": "assets/Images/Buildings/Haus1.png",
         "width": 2,
         "height": 1,
-        "solid": true,
-        "interior_size": "small"
+        "solid": true
     }
 }

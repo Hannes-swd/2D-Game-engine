@@ -8,6 +8,15 @@
             "width": 2,
             "x": 1,
             "y": -2
+        },
+        "3,0": {
+            "buildingId": "House",
+            "height": 1,
+            "instanceId": "House_3_0",
+            "state": "",
+            "width": 2,
+            "x": 3,
+            "y": 0
         }
     },
     "default_typ": "concrete",
@@ -35,9 +44,20 @@
         "3,-2": "gras",
         "3,-3": "gras",
         "3,0": "gras",
+        "3,1": "gras",
+        "3,2": "gras",
         "4,-1": "gras",
         "4,-2": "gras",
         "4,-3": "gras",
-        "4,0": "gras"
+        "4,0": "gras",
+        "4,1": "gras",
+        "4,2": "gras",
+        "5,-1": "gras",
+        "5,-2": "gras",
+        "5,-3": "gras",
+        "5,0": "gras",
+        "5,1": "gras",
+        "5,2": "gras",
+        "6,1": "gras"
     }
 }

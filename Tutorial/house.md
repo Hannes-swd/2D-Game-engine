@@ -182,9 +182,10 @@ BUILDING_BEGIN("House", House)
     }
 
     void onClick() {
-        // Each house instance has a unique ID — use it as the dimension ID.
-        // The dimension must be registered in dimensions.json first.
-        switchDimension("house_interior");
+        // enterInterior respects sharedInterior from dimensions.json:
+        // true  → all instances share one dimension
+        // false → each placed instance gets its own copy
+        enterInterior("house_interior");
     }
 
     void onPlace()  { }

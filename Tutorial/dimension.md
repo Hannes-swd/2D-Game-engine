@@ -15,17 +15,19 @@ Open [`assets/json/Map/dimensions.json`](assets/json/Map/dimensions.json) and ad
     "width": 4,
     "height": 10,
     "backgroundColor": [50, 30, 20, 255],
-    "defaultTile": "concrete"
+    "defaultTile": "concrete",
+    "sharedInterior": false
 }
 ```
 
 | Field | Description |
 |---|---|
 | `name` | Display name of the dimension |
-| `width` | Width in tiles (player cannot move beyond this) |
-| `height` | Height in tiles (player cannot move beyond this) |
+| `width` | Width in tiles — this is where the size is defined |
+| `height` | Height in tiles — this is where the size is defined |
 | `backgroundColor` | Background color as `[R, G, B, A]` (0–255) |
 | `defaultTile` | Tile type used for cells that have no tile placed yet |
+| `sharedInterior` | `true` → all building instances share one dimension · `false` → each placed building gets its own copy (default: `true`) |
 
 > The dimension ID (here `"house_interior"`) is the key used to enter and leave it via `switchDimension()`.
 

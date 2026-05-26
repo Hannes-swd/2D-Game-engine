@@ -50,7 +50,6 @@ static void loadBuildingsFromJson(const std::string& path, BuildingManager& mgr)
         b->width     = bData.value("width",  1);
         b->height    = bData.value("height", 1);
         b->solid     = bData.value("solid",  true);
-        b->interiorSize = bData.value("interior_size", "");
 
         std::string rawTex = bData.value("textur", "");
         if (!rawTex.empty()) {

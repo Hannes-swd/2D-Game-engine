@@ -4,6 +4,7 @@
 #include "map.h"
 #include "ground.h"
 #include "Dimension.h"
+#include "Buildings.h"
 #include <fstream>
 #include <iostream>
 #include <filesystem>
@@ -164,6 +165,20 @@ void updatePlayer(player& p) {
             if (world.tiles.count(key) == 0) return false;
             if (world.groundDatabase && !world.groundDatabase->isWalkable(world.getTile(tx, ty)))
                 return false;
+            // Gebäude-Kollision: alle Tiles die der Spieler-Kreis überlappt prüfen
+            int txMin = (int)floorf((x - PLAYER_RADIUS) / TILE_SIZE);
+            int txMax = (int)floorf((x + PLAYER_RADIUS) / TILE_SIZE);
+            int tyMin = (int)floorf((y - PLAYER_RADIUS) / TILE_SIZE);
+            int tyMax = (int)floorf((y + PLAYER_RADIUS) / TILE_SIZE);
+            for (int cy = tyMin; cy <= tyMax; ++cy) {
+                for (int cx = txMin; cx <= txMax; ++cx) {
+                    PlacedBuilding* pb = world.getBuildingAt(cx, cy);
+                    if (pb) {
+                        Building* b = g_buildingManager.getBuilding(pb->buildingId);
+                        if (b && b->solid) return false;
+                    }
+                }
+            }
             return true;
         }
     };

@@ -14,7 +14,6 @@ struct Building {
     int width  = 1;
     int height = 1;
     bool solid = true;
-    std::string interiorSize; // "small" | "medium" | "large" | ""
 
     std::function<void()> onHover;
     std::function<void()> onClick;
