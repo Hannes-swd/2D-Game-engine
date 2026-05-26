@@ -48,6 +48,7 @@ inline void placeBuilding(const std::string& buildingId, int x, int y) {
     pb.instanceId  = buildingId + "_" + std::to_string(x) + "_" + std::to_string(y);
     pb.state       = "";
     world.placeBuilding(pb);
+    g_buildingJustPlaced = true;
     if (b->onPlace) b->onPlace();
 }
 

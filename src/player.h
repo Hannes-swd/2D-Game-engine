@@ -31,6 +31,8 @@ public:
         posY = (float)posy;
     }
 
+    void setPositionF(float x, float y) { posX = x; posY = y; }
+
     void Move(direction dir, float deltaTime) {
         switch (dir) {
             case Right: posX += speed * deltaTime; break;
@@ -40,6 +42,7 @@ public:
         }
     }
 
+    float getSpeed() const { return speed; }
     Vector2 Get_position() const { return { posX, posY }; }
     void Change_Name(std::string Name) { name = Name; }
     std::string Get_Name() const { return name; }

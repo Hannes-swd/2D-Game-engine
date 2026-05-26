@@ -1,14 +1,19 @@
 #include "player.h"
 #include "inventory.h"
 #include "Cam.h"
+#include "map.h"
+#include "ground.h"
+#include "Dimension.h"
 #include <fstream>
 #include <iostream>
 #include <filesystem>
+#include <cmath>
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
 // Asset path helper (defined in main.cpp)
 extern std::string assetPath(const std::string& relativ);
+extern Map world;
 
 // ── Inventory-Methoden ────────────────────────────────────────────────────────
 
@@ -129,11 +134,43 @@ void savePlayer(const player& p) {
 
 void updatePlayer(player& p) {
     float delta = GetFrameTime();
+    const int   TILE_SIZE     = 32;
+    const float PLAYER_RADIUS = 10.0f;
 
-    if (IsKeyDown(KEY_W)) p.Move(Up,    delta);
-    if (IsKeyDown(KEY_S)) p.Move(Down,  delta);
-    if (IsKeyDown(KEY_A)) p.Move(Left,  delta);
-    if (IsKeyDown(KEY_D)) p.Move(Right, delta);
+    Vector2 pos  = p.Get_position();
+    float   newX = pos.x;
+    float   newY = pos.y;
+
+    bool movingX = false, movingY = false;
+    if (IsKeyDown(KEY_W)) { newY -= p.getSpeed() * delta; movingY = true; }
+    if (IsKeyDown(KEY_S)) { newY += p.getSpeed() * delta; movingY = true; }
+    if (IsKeyDown(KEY_A)) { newX -= p.getSpeed() * delta; movingX = true; }
+    if (IsKeyDown(KEY_D)) { newX += p.getSpeed() * delta; movingX = true; }
+
+    DimensionData* dim = g_dimensionManager.getCurrentDimension();
+
+    auto canMoveTo = [&](float x, float y) -> bool {
+        if (dim) {
+            // In Dimension: Spieler darf Grenzen nicht überschreiten
+            float r = PLAYER_RADIUS;
+            return x >= r && y >= r
+                && x <= dim->width  * TILE_SIZE - r
+                && y <= dim->height * TILE_SIZE - r;
+        } else {
+            // Hauptwelt: Tile muss existieren und begehbar sein
+            int tx = (int)floorf(x / TILE_SIZE);
+            int ty = (int)floorf(y / TILE_SIZE);
+            std::string key = std::to_string(tx) + "," + std::to_string(ty);
+            if (world.tiles.count(key) == 0) return false;
+            if (world.groundDatabase && !world.groundDatabase->isWalkable(world.getTile(tx, ty)))
+                return false;
+            return true;
+        }
+    };
+
+    if (movingX && canMoveTo(newX, pos.y)) pos.x = newX;
+    if (movingY && canMoveTo(pos.x, newY)) pos.y = newY;
+    p.setPositionF(pos.x, pos.y);
 
     // Slot-Auswahl per Tastatur (1-0)
     for (int i = 0; i < 10; i++) {
@@ -179,9 +216,9 @@ void updatePlayer(player& p) {
             hand->onClick();
     }
 
-    Vector2 pos     = p.Get_position();
-    camera.target.x = pos.x;
-    camera.target.y = pos.y;
+    Vector2 camPos   = p.Get_position();
+    camera.target.x = camPos.x;
+    camera.target.y = camPos.y;
 }
 
 // ── Zeichnen ──────────────────────────────────────────────────────────────────

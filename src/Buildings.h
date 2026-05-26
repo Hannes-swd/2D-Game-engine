@@ -74,3 +74,6 @@ void updateBuildings(Map& world, BuildingManager& mgr, int tileSize);
 // Zeigt auf das PlacedBuilding das gerade hover/click-Callbacks auslöst.
 // Wird in updateBuildings gesetzt – in Callbacks via getInstanceId() lesbar.
 extern PlacedBuilding* g_activePlacedBuilding;
+
+// Verhindert dass ein Klick der ein Gebäude platziert gleichzeitig dessen onClick auslöst.
+extern bool g_buildingJustPlaced;

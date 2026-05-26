@@ -9,6 +9,7 @@
 extern player* g_player;
 
 PlacedBuilding* g_activePlacedBuilding = nullptr;
+bool g_buildingJustPlaced = false;
 
 using json = nlohmann::json;
 
@@ -94,6 +95,12 @@ void BuildingManager::scanAndLoadBuildings() {
 
 void updateBuildings(Map& world, BuildingManager& mgr, int tileSize) {
     if (g_player && g_player->IsMouseOnUi()) return;
+
+    // Klick der ein Gebäude platziert hat darf nicht gleichzeitig onClick auslösen
+    if (g_buildingJustPlaced) {
+        g_buildingJustPlaced = false;
+        return;
+    }
 
     Vector2 t  = getTileMousePos(tileSize);
     int tileX  = (int)t.x;

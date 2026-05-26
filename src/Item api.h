@@ -36,6 +36,7 @@
 #include "map.h"
 #include "player.h"
 #include "Mouse tile.h"
+#include "Dimension.h"
 #include "raylib.h"
 #include <string>
 #include <functional>
@@ -65,9 +66,16 @@ inline std::string consumeTooltip() {
 
 // ── Hilfsfunktionen für Modder ───────────────────────────────────────────────
 
-// Setzt einen Tile auf der Karte
+// Setzt einen Tile – in Dimension: auf Dimensionskarte (mit Grenzprüfung), sonst Hauptwelt
 inline void setTile(int x, int y, const std::string& typ) {
-    world.setTile(x, y, typ);
+    if (g_dimensionManager.isInDimension()) {
+        DimensionData* dim = g_dimensionManager.getCurrentDimension();
+        if (!dim) return;
+        if (x < 0 || y < 0 || x >= dim->width || y >= dim->height) return;
+        dim->tiles[std::to_string(x) + "," + std::to_string(y)] = typ;
+    } else {
+        world.setTile(x, y, typ);
+    }
 }
 
 // Tile position under the mouse

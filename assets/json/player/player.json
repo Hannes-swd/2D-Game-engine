@@ -1,17 +1,17 @@
 {
     "buildMode": false,
-    "currentSlot": 1,
+    "currentSlot": 2,
     "inventory": [
         {
             "amount": 10,
             "id": "Beton"
         },
         {
-            "amount": 157,
+            "amount": 141,
             "id": "grasItem"
         }
     ],
     "name": "Spieler",
-    "posX": 47,
-    "posY": 84
+    "posX": 194,
+    "posY": -144
 }

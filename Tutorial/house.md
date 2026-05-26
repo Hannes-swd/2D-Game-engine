@@ -46,12 +46,12 @@ BUILDING_BEGIN("House", House)
 
     }
 
-    // Called when the player clicks on this building.
+    // Called when the player left-clicks an already-placed building.
     void onClick() {
 
     }
 
-    // Called once when this building is placed in the world.
+    // Called once at the moment this building is placed in the world.
     void onPlace() {
 
     }
@@ -80,7 +80,7 @@ BUILDING_END("House")
 
 ## Step 3 — Create an item that places the building
 
-Buildings are placed through items. Open [`items/`](items/) and create or edit an item `.cpp` file.
+Buildings are placed through items. Inside the [`items/`](items/) folder, create a new `.cpp` file.
 
 Use `setBuildMode(true)` in `onHand()` to show the placement grid, then call `placeBuilding()` in `onClick()`:
 
@@ -116,6 +116,9 @@ Don't forget to register the item in [`assets/json/items/item.json`](assets/json
 }
 ```
 
+> **Important:** Always use `leftClickPressed()` (not `leftClick()`) when placing buildings.
+> The engine guarantees that the placement click and the building's `onClick` are **never triggered on the same frame** — the click that places the building is consumed automatically so the building's `onClick` only fires on the *next* separate click.
+
 ---
 
 ## How it connects
@@ -138,7 +141,7 @@ houses.json        BUILDING_BEGIN id     House.cpp
 | Callback | When it runs |
 |---|---|
 | `onHover()` | Every frame the mouse is over the building |
-| `onClick()` | When the player left-clicks the building |
+| `onClick()` | When the player left-clicks an already-placed building |
 | `onPlace()` | Once, at the moment the building is placed |
 | `onEnter()` | When the player walks onto the building's tiles |
 | `onLeave()` | When the player walks off the building's tiles |
@@ -158,14 +161,16 @@ houses.json        BUILDING_BEGIN id     House.cpp
 | `rightClick()` | `true` every frame the right button is held |
 | `IsMouseOnUi()` | `true` if the mouse is over the hotbar or inventory |
 | `setTile(x, y, type)` | Place a ground tile at the given coordinates |
-| `getState()` | Returns the instance's current state string |
-| `setState(value)` | Sets the instance's state string |
 | `getInstanceId()` | Returns the unique ID of this placed instance |
 | `placeBuilding(id, x, y)` | Place a building at the given tile coordinates |
+| `switchDimension(id)` | Teleport the player into a dimension (use `""` to return to the world) |
 
 ---
 
-## Full example — House with hover tooltip
+## Full example — House with interior dimension
+
+This example shows how to enter a house interior when the player clicks on it.
+Each placed house gets its own unique dimension based on its `instanceId`.
 
 ```cpp
 #include "building_api.h"
@@ -173,13 +178,13 @@ houses.json        BUILDING_BEGIN id     House.cpp
 BUILDING_BEGIN("House", House)
 
     void onHover() {
-        // draw a tooltip above the building
-        DrawText("[Click] Enter", 10, 10, 20, WHITE);
+        setPendingTooltip("[Click] Enter");
     }
 
     void onClick() {
-        // switch to the interior dimension when clicked
-        // (interior system not yet implemented)
+        // Each house instance has a unique ID — use it as the dimension ID.
+        // The dimension must be registered in dimensions.json first.
+        switchDimension("house_interior");
     }
 
     void onPlace()  { }
@@ -189,6 +194,8 @@ BUILDING_BEGIN("House", House)
 
 BUILDING_END("House")
 ```
+
+> See [`dimension.md`](dimension.md) for how to set up the interior dimension the player enters.
 
 ---
 
