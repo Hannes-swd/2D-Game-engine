@@ -14,6 +14,7 @@
 #include "item api.h"
 #include "Buildings.h"
 #include "Dimension.h"
+#include "UI.h"
 
 
 using json = nlohmann::json;
@@ -69,6 +70,7 @@ int main()
     g_itemManager.scanAndLoadItems();
     g_buildingManager.scanAndLoadBuildings();
     g_dimensionManager.load(assetPath("json/Map/dimensions.json"));
+    g_uiManager.load(assetPath("json/ui/popups.json"));
 
     // ── Map load ─────────────────────────────────────────────────────────────
     {
@@ -93,10 +95,14 @@ int main()
     while (!WindowShouldClose())
     {
         float delta = GetFrameTime();
-        updatePlayer(localPlayer);
-        if (!g_dimensionManager.isInDimension())
-            updateBuildings(world, g_buildingManager, TILE_SIZE);
-        g_dimensionManager.update();
+        bool uiBlocksWorld = g_uiManager.isUIOpen() && g_uiManager.isModal();
+        g_uiManager.update();
+        if (!uiBlocksWorld) {
+            updatePlayer(localPlayer);
+            if (!g_dimensionManager.isInDimension())
+                updateBuildings(world, g_buildingManager, TILE_SIZE);
+            g_dimensionManager.update();
+        }
         // Kamera nach möglichem Dimensions-Wechsel synchronisieren
         {
             Vector2 pos = localPlayer.Get_position();
@@ -148,6 +154,7 @@ int main()
             }
         }
             drawInventory(localPlayer);
+            g_uiManager.draw();
         EndDrawing();
 
         setBuildMode(false);

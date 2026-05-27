@@ -1,8 +1,5 @@
 #include "building_api.h"
-
-// ─────────────────────────────────────────────────────────────────────────────
-//  Haus  –  Klick betritt die house_interior-Dimension
-// ─────────────────────────────────────────────────────────────────────────────
+#include "ui_api.h"
 
 BUILDING_BEGIN("House", House)
 
@@ -11,7 +8,7 @@ BUILDING_BEGIN("House", House)
     }
 
     void onClick() {
-        enterInterior("house_interior");
+        openUI("house_entrance");
     }
 
     void onPlace()  { }

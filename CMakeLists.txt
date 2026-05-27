@@ -16,7 +16,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
-# ── Quellen: src/ + items/ + buildings/ + dimensions/ ────────────────────────
+# ── Quellen: src/ + items/ + buildings/ + dimensions/ + ui/ ──────────────────
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cc"
@@ -30,6 +30,9 @@ file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/dimensions/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/dimensions/*.cc"
     "${CMAKE_CURRENT_SOURCE_DIR}/dimensions/*.cxx"
+    "${CMAKE_CURRENT_SOURCE_DIR}/ui/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/ui/*.cc"
+    "${CMAKE_CURRENT_SOURCE_DIR}/ui/*.cxx"
 )
 
 message(STATUS "Gefundene Quell-Dateien:")
@@ -97,6 +100,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/items
     ${CMAKE_SOURCE_DIR}/buildings
     ${CMAKE_SOURCE_DIR}/dimensions
+    ${CMAKE_SOURCE_DIR}/ui
     ${imgui_SOURCE_DIR}
     ${rlimgui_SOURCE_DIR}
 )
