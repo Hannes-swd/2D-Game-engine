@@ -33,6 +33,9 @@ file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/ui/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/ui/*.cc"
     "${CMAKE_CURRENT_SOURCE_DIR}/ui/*.cxx"
+    "${CMAKE_CURRENT_SOURCE_DIR}/player/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/player/*.cc"
+    "${CMAKE_CURRENT_SOURCE_DIR}/player/*.cxx"
 )
 
 message(STATUS "Gefundene Quell-Dateien:")
@@ -101,6 +104,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/buildings
     ${CMAKE_SOURCE_DIR}/dimensions
     ${CMAKE_SOURCE_DIR}/ui
+    ${CMAKE_SOURCE_DIR}/player
     ${imgui_SOURCE_DIR}
     ${rlimgui_SOURCE_DIR}
 )

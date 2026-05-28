@@ -7,11 +7,11 @@
             "id": "Beton"
         },
         {
-            "amount": 43,
+            "amount": 41,
             "id": "grasItem"
         }
     ],
     "name": "Spieler",
-    "posX": 100,
-    "posY": -11
+    "posX": 170,
+    "posY": 62
 }

@@ -19,11 +19,13 @@ private:
     std::vector<InventorySlot> inventory;
     std::string name;
 
-    int  currentSlot  = 0;   // aktuell ausgewählter Hotbar-Slot (0–9)
-    int  dragSlot       = -1;  // Slot der gerade gezogen wird (-1 = keiner)
-    bool inventoryOpen  = false; // erweitertes Inventar offen?
-    bool mouseOnUI      = false; // true when mouse is over hotbar/inventory UI
-    bool buildMode       = false; // Baumodus: zeigt Raster + Platzierungs-Vorschau
+    int  currentSlot  = 0;
+    int  dragSlot       = -1;
+    bool inventoryOpen  = false;
+    bool mouseOnUI      = false;
+    bool buildMode       = false;
+
+#include "player_ext_vars.h"
 
 public:
     void Set_position(int posx, int posy) {
@@ -78,6 +80,8 @@ public:
 
     // Slots tauschen
     void swapSlots(int a, int b);
+
+#include "player_ext_methods.h"
 };
 
 void loadPlayer(player& p);
