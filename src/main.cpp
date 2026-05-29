@@ -15,6 +15,7 @@
 #include "Buildings.h"
 #include "Dimension.h"
 #include "UI.h"
+#include "clothing.h"
 
 
 using json = nlohmann::json;
@@ -68,6 +69,7 @@ int main()
     initCamera();
 
     g_itemManager.scanAndLoadItems();
+    g_clothingManager.loadAll();
     g_buildingManager.scanAndLoadBuildings();
     g_dimensionManager.load(assetPath("json/Map/dimensions.json"));
     g_uiManager.load(assetPath("json/ui/popups.json"));

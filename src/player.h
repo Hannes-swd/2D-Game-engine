@@ -3,13 +3,12 @@
 #include <vector>
 #include "raylib.h"
 #include "Items.h"
+#include "direction.h"
 
 struct InventorySlot {
     std::string itemId;
     int amount;
 };
-
-enum direction { Up, Down, Right, Left };
 
 class player {
 private:
@@ -24,6 +23,16 @@ private:
     bool inventoryOpen  = false;
     bool mouseOnUI      = false;
     bool buildMode       = false;
+
+    direction lastDir = Down;
+    std::string bodyId  = "human_base";
+    std::string shirtId = "";
+    std::string pantsId = "";
+    std::string hairId  = "";
+
+    std::vector<std::string> ownedShirts;
+    std::vector<std::string> ownedPants;
+    std::vector<std::string> ownedHair;
 
 #include "player_ext_vars.h"
 
@@ -67,6 +76,30 @@ public:
     bool isBuildMode() const               { return buildMode; }
     void setBuildMode(bool b)              { buildMode = b; }
     void toggleBuildMode()                 { buildMode = !buildMode; }
+
+    direction   getLastDir()  const        { return lastDir; }
+    void        setLastDir(direction d)    { lastDir = d; }
+
+    const std::string& getBodyId()  const  { return bodyId; }
+    const std::string& getShirtId() const  { return shirtId; }
+    const std::string& getPantsId() const  { return pantsId; }
+    const std::string& getHairId()  const  { return hairId; }
+    void setBodyId (const std::string& s)  { bodyId  = s; }
+    void setShirtId(const std::string& s)  { shirtId = s; }
+    void setPantsId(const std::string& s)  { pantsId = s; }
+    void setHairId (const std::string& s)  { hairId  = s; }
+
+    const std::vector<std::string>& getOwnedShirts() const { return ownedShirts; }
+    const std::vector<std::string>& getOwnedPants()  const { return ownedPants; }
+    const std::vector<std::string>& getOwnedHair()   const { return ownedHair; }
+
+    void addOwnedShirt(const std::string& id) { if (!hasOwnedShirt(id)) ownedShirts.push_back(id); }
+    void addOwnedPants(const std::string& id) { if (!hasOwnedPants(id)) ownedPants.push_back(id); }
+    void addOwnedHair (const std::string& id) { if (!hasOwnedHair(id))  ownedHair.push_back(id); }
+
+    bool hasOwnedShirt(const std::string& id) const { for (auto& s : ownedShirts) if (s == id) return true; return false; }
+    bool hasOwnedPants(const std::string& id) const { for (auto& s : ownedPants)  if (s == id) return true; return false; }
+    bool hasOwnedHair (const std::string& id) const { for (auto& s : ownedHair)   if (s == id) return true; return false; }
 
     // Aktives Item (in der Hand)
     Item* getHandItem() const;

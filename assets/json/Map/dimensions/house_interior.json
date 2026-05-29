@@ -1,7 +1,12 @@
 {
     "id": "house_interior",
     "tiles": {
+        "0,6": "gras",
+        "0,7": "gras",
         "1,2": "gras",
-        "2,2": "gras"
+        "1,7": "gras",
+        "2,2": "gras",
+        "2,7": "gras",
+        "3,9": "gras"
     }
 }

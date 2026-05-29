@@ -1,17 +1,30 @@
 {
+    "bodyId": "human_base",
     "buildMode": false,
-    "currentSlot": 4,
+    "currentSlot": 2,
+    "hairId": "long_brown",
     "inventory": [
         {
             "amount": 10,
             "id": "Beton"
         },
         {
-            "amount": 41,
+            "amount": 36,
             "id": "grasItem"
         }
     ],
     "name": "Spieler",
-    "posX": 170,
-    "posY": 62
+    "ownedHair": [
+        "long_brown"
+    ],
+    "ownedPants": [
+        "blue_pants"
+    ],
+    "ownedShirts": [
+        "red_shirt"
+    ],
+    "pantsId": "blue_pants",
+    "posX": 121,
+    "posY": -20,
+    "shirtId": "red_shirt"
 }

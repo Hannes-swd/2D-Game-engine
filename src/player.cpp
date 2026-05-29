@@ -1,4 +1,5 @@
 #include "player.h"
+#include "clothing.h"
 #include "inventory.h"
 #include "Cam.h"
 #include "map.h"
@@ -76,6 +77,17 @@ void loadPlayer(player& p) {
             p.Change_Name(data.value("name", std::string("Spieler")));
             p.setCurrentSlot(data.value("currentSlot", 0));
             p.setBuildMode(data.value("buildMode", false));
+            p.setBodyId (data.value("bodyId",  std::string("human_base")));
+            p.setShirtId(data.value("shirtId", std::string("")));
+            p.setPantsId(data.value("pantsId", std::string("")));
+            p.setHairId (data.value("hairId",  std::string("")));
+
+            if (data.contains("ownedShirts") && data["ownedShirts"].is_array())
+                for (auto& id : data["ownedShirts"]) p.addOwnedShirt(id.get<std::string>());
+            if (data.contains("ownedPants") && data["ownedPants"].is_array())
+                for (auto& id : data["ownedPants"])  p.addOwnedPants(id.get<std::string>());
+            if (data.contains("ownedHair") && data["ownedHair"].is_array())
+                for (auto& id : data["ownedHair"])   p.addOwnedHair(id.get<std::string>());
 
             if (data.contains("inventory") && data["inventory"].is_array()) {
                 for (const auto& slot : data["inventory"]) {
@@ -107,7 +119,23 @@ void savePlayer(const player& p) {
     data["posY"]          = (int)pos.y;
     data["name"]          = p.Get_Name();
     data["currentSlot"] = p.getCurrentSlot();
-    data["buildMode"]      = p.isBuildMode();
+    data["buildMode"]   = p.isBuildMode();
+    data["bodyId"]  = p.getBodyId();
+    data["shirtId"] = p.getShirtId();
+    data["pantsId"] = p.getPantsId();
+    data["hairId"]  = p.getHairId();
+
+    json shirtsArr = json::array();
+    for (auto& id : p.getOwnedShirts()) shirtsArr.push_back(id);
+    data["ownedShirts"] = shirtsArr;
+
+    json pantsArr = json::array();
+    for (auto& id : p.getOwnedPants()) pantsArr.push_back(id);
+    data["ownedPants"] = pantsArr;
+
+    json hairArr = json::array();
+    for (auto& id : p.getOwnedHair()) hairArr.push_back(id);
+    data["ownedHair"] = hairArr;
 
     json inventoryArray = json::array();
     for (const auto& slot : p.getInventory()) {
@@ -143,10 +171,10 @@ void updatePlayer(player& p) {
     float   newY = pos.y;
 
     bool movingX = false, movingY = false;
-    if (IsKeyDown(KEY_W)) { newY -= p.getSpeed() * delta; movingY = true; }
-    if (IsKeyDown(KEY_S)) { newY += p.getSpeed() * delta; movingY = true; }
-    if (IsKeyDown(KEY_A)) { newX -= p.getSpeed() * delta; movingX = true; }
-    if (IsKeyDown(KEY_D)) { newX += p.getSpeed() * delta; movingX = true; }
+    if (IsKeyDown(KEY_W)) { newY -= p.getSpeed() * delta; movingY = true; p.setLastDir(Up); }
+    if (IsKeyDown(KEY_S)) { newY += p.getSpeed() * delta; movingY = true; p.setLastDir(Down); }
+    if (IsKeyDown(KEY_A)) { newX -= p.getSpeed() * delta; movingX = true; p.setLastDir(Left); }
+    if (IsKeyDown(KEY_D)) { newX += p.getSpeed() * delta; movingX = true; p.setLastDir(Right); }
 
     DimensionData* dim = g_dimensionManager.getCurrentDimension();
 
@@ -240,7 +268,18 @@ void updatePlayer(player& p) {
 
 void drawPlayer(player& p) {
     Vector2 pos = p.Get_position();
-    DrawCircle((int)pos.x, (int)pos.y, 10, ORANGE);
+
+    BodyData*     body  = g_clothingManager.getBody(p.getBodyId());
+    ClothingItem* shirt = p.getShirtId().empty() ? nullptr : g_clothingManager.getShirt(p.getShirtId());
+    ClothingItem* pants = p.getPantsId().empty() ? nullptr : g_clothingManager.getPants(p.getPantsId());
+    ClothingItem* hair  = p.getHairId().empty()  ? nullptr : g_clothingManager.getHair(p.getHairId());
+
+    bool hasSprite = body && (body->texFrontal.id || body->texSide.id);
+    if (hasSprite) {
+        drawCharacter(body, shirt, pants, hair, p.getLastDir(), pos);
+    } else {
+        DrawCircle((int)pos.x, (int)pos.y, 10, ORANGE);
+    }
 
     Item* hand = p.getHandItem();
     if (hand && hand->textur.id != 0) {
