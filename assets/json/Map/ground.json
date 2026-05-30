@@ -3,10 +3,5 @@
         "name": "gras",
         "textur": "assets/Images/Map/gras.png",
         "accessible": true
-    },
-    "concrete": {
-        "name": "concrete",
-        "textur": "assets/Images/Map/concrete.png",
-        "accessible": true
     }
 }

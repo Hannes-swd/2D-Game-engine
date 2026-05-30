@@ -8,6 +8,7 @@ BUILDING_BEGIN("House", House)
     }
 
     void onClick() {
+        prepareInterior("house_interior");
         openUI("house_entrance");
     }
 

@@ -1,4 +1,5 @@
 #include "ui_api.h"
+#include "building_api.h"
 
 UI_WINDOW_BEGIN("house_entrance")
 
@@ -6,7 +7,7 @@ UI_WINDOW_BEGIN("house_entrance")
     UI_SEPARATOR()
 
     UI_BUTTON("Ja", []() {
-        switchDimension("house_interior");
+        switchDimension(g_pendingInteriorDimId);
         closeCurrentUI();
     })
 

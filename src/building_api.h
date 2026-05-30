@@ -48,6 +48,23 @@ inline void enterInterior(const std::string& templateId) {
     }
 }
 
+// ── Interior für UI-Callbacks vorbereiten ─────────────────────────────────────
+// Muss in onClick() aufgerufen werden (solange g_activePlacedBuilding gültig ist).
+// Speichert die aufgelöste Dimensions-ID, damit ein UI-Button sie per
+// switchDimension(g_pendingInteriorDimId) nutzen kann.
+inline std::string g_pendingInteriorDimId;
+
+inline void prepareInterior(const std::string& templateId) {
+    DimensionData* tmpl = g_dimensionManager.getDimension(templateId);
+    if (!tmpl) return;
+    if (tmpl->sharedInterior) {
+        g_pendingInteriorDimId = templateId;
+    } else {
+        g_pendingInteriorDimId = templateId + "_" + getInstanceId();
+        g_dimensionManager.cloneTemplate(templateId, g_pendingInteriorDimId);
+    }
+}
+
 // ── Gebäude platzieren ───────────────────────────────────────────────────────
 inline void placeBuilding(const std::string& buildingId, int x, int y) {
     Building* b = g_buildingManager.getBuilding(buildingId);

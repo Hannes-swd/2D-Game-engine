@@ -4,7 +4,7 @@
         "width": 4,
         "height": 10,
         "backgroundColor": [50, 30, 20, 255],
-        "defaultTile": "concrete",
+        "defaultTile": "gras",
         "sharedInterior": false
     }
 }

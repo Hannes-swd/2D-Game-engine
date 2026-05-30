@@ -6,10 +6,10 @@
     "inventory": [
         {
             "amount": 10,
-            "id": "Beton"
+            "id": "HouseItem"
         },
         {
-            "amount": 36,
+            "amount": 7,
             "id": "grasItem"
         }
     ],
@@ -24,7 +24,7 @@
         "red_shirt"
     ],
     "pantsId": "blue_pants",
-    "posX": 121,
-    "posY": -20,
+    "posX": 71,
+    "posY": -52,
     "shirtId": "red_shirt"
 }

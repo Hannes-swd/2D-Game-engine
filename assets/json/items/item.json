@@ -3,8 +3,8 @@
         "name": "gras",
         "textur": "assets/Images/Map/gras.png"
     },
-    "Beton": {
-        "name": "Beton",
-        "textur": "assets/Images/Map/concrete.png"
+    "HouseItem": {
+        "name": "House",
+        "textur": "assets/Images/Map/HouseItem.png"
     }
 }

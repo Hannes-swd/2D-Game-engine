@@ -1,6 +1,6 @@
 #include "building_api.h"
 
-ITEM_BEGIN("Beton", Beton)
+ITEM_BEGIN("HouseItem", Beton)
 
     void onHand() {
         setBuildMode(true);
@@ -17,4 +17,4 @@ ITEM_BEGIN("Beton", Beton)
     void onInventory() {
     }
 
-ITEM_END("Beton")
+ITEM_END("HouseItem")
