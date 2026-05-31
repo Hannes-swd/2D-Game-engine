@@ -39,6 +39,9 @@ file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/npcs/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/npcs/*.cc"
     "${CMAKE_CURRENT_SOURCE_DIR}/npcs/*.cxx"
+    "${CMAKE_CURRENT_SOURCE_DIR}/objects/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/objects/*.cc"
+    "${CMAKE_CURRENT_SOURCE_DIR}/objects/*.cxx"
 )
 
 message(STATUS "Gefundene Quell-Dateien:")
@@ -109,6 +112,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/ui
     ${CMAKE_SOURCE_DIR}/player
     ${CMAKE_SOURCE_DIR}/npcs
+    ${CMAKE_SOURCE_DIR}/objects
     ${imgui_SOURCE_DIR}
     ${rlimgui_SOURCE_DIR}
 )

@@ -10,5 +10,21 @@
     "beschwItem": {
         "name": "Beschwörung",
         "textur": "assets/Images/Items/beschwItem.png"
+    },
+    "truhenItem": {
+        "name": "Truhe",
+        "textur": "assets/Images/Map/gras.png"
+    },
+    "partikelItem": {
+        "name": "Partikel",
+        "textur": "assets/Images/Map/gras.png"
+    },
+    "kameraItem": {
+        "name": "Kamera",
+        "textur": "assets/Images/Map/gras.png"
+    },
+    "musikItem": {
+        "name": "Musik",
+        "textur": "assets/Images/Map/gras.png"
     }
 }

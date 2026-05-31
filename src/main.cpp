@@ -17,6 +17,9 @@
 #include "UI.h"
 #include "clothing.h"
 #include "NPC.h"
+#include "Object.h"
+#include "SoundSystem.h"
+#include "Particles.h"
 
 
 using json = nlohmann::json;
@@ -50,6 +53,7 @@ int main()
     InitWindow(screenWidth, screenHeight, "2D Game Engine");
     SetWindowState(FLAG_WINDOW_RESIZABLE);
     SetTargetFPS(60);
+    g_soundManager.init();
 
     // config.json load – try/catch damit schlechte JSON nicht abort() ausloest
     {
@@ -69,6 +73,10 @@ int main()
     g_player = &localPlayer;
     initCamera();
 
+    g_soundManager.load(assetPath("json/sounds.json"));
+    g_soundManager.scanSounds(assetPath("sounds/"));
+    g_soundManager.scanMusic(assetPath("music/"));
+    g_objectManager.loadTemplates(assetPath("json/objects/objects.json"));
     g_itemManager.scanAndLoadItems();
     g_clothingManager.loadAll();
     g_buildingManager.scanAndLoadBuildings();
@@ -94,6 +102,7 @@ int main()
 
     g_npcManager.loadTemplates();
     g_npcManager.load(assetPath("json/Map/npcs.json"));
+    g_objectManager.load(assetPath("json/Map/objects.json"));
 
     float speicherTimer = 0.0f;
     const float SPEICHER_INTERVALL = 30.0f;
@@ -105,23 +114,22 @@ int main()
         g_uiManager.update();
         if (!uiBlocksWorld) {
             updatePlayer(localPlayer);
-            if (!g_dimensionManager.isInDimension())
+            if (!g_dimensionManager.isInDimension()) {
                 updateBuildings(world, g_buildingManager, TILE_SIZE);
+                g_objectManager.update(delta, TILE_SIZE);
+            }
             g_npcManager.update(delta);
             g_dimensionManager.update();
         }
-        // Kamera nach möglichem Dimensions-Wechsel synchronisieren
-        {
-            Vector2 pos = localPlayer.Get_position();
-            camera.target.x = pos.x;
-            camera.target.y = pos.y;
-        }
+        g_particleManager.update(delta);
+        g_soundManager.update();
         updateCamera();
 
         speicherTimer += delta;
         if (speicherTimer >= SPEICHER_INTERVALL) {
             world.save(assetPath("json/Map/world.json"));
             g_npcManager.save(assetPath("json/Map/npcs.json"));
+            g_objectManager.save(assetPath("json/Map/objects.json"));
             if (g_dimensionManager.isInDimension()) {
                 // Weltposition speichern, nicht die Positions innerhalb der Dimension
                 Vector2 dimPos = localPlayer.Get_position();
@@ -146,6 +154,7 @@ int main()
                 g_npcManager.draw();
                 drawBuildModeGrid(localPlayer, TILE_SIZE, 20, 0, 0, dim->width - 1, dim->height - 1);
                 drawPlayer(localPlayer);
+                g_particleManager.draw();
             EndMode2D();
             {
                 std::string tip = consumeTooltip();
@@ -159,9 +168,12 @@ int main()
             BeginMode2D(camera);
                 draw_ground(world, ground, TILE_SIZE);
                 draw_buildings(world, g_buildingManager, TILE_SIZE);
+                g_objectManager.draw(TILE_SIZE, false);
                 g_npcManager.draw();
                 drawBuildModeGrid(localPlayer, TILE_SIZE);
                 drawPlayer(localPlayer);
+                g_objectManager.draw(TILE_SIZE, true);
+                g_particleManager.draw();
             EndMode2D();
             // Tooltip von Building/NPC-onHover zeichnen
             std::string tip = consumeTooltip();
@@ -179,6 +191,7 @@ int main()
 
     world.save(assetPath("json/Map/world.json"));
     g_npcManager.save(assetPath("json/Map/npcs.json"));
+    g_objectManager.save(assetPath("json/Map/objects.json"));
     if (g_dimensionManager.isInDimension()) {
         Vector2 dimPos = localPlayer.Get_position();
         localPlayer.setPositionF(g_dimensionManager.getSavedWorldX(),
@@ -189,6 +202,7 @@ int main()
         savePlayer(localPlayer);
     }
     g_dimensionManager.saveAll(assetPath("json/Map/dimensions/"));
+    g_soundManager.unloadAll();
     ground.unloadTextures();
     CloseWindow();
     return 0;

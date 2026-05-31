@@ -1,0 +1,8 @@
+{
+  "sounds": {
+    "truhe_open":    { "type": "beep", "freq": 523.25, "duration": 0.15 },
+    "partikel_pop":  { "type": "beep", "freq": 880.0,  "duration": 0.08 }
+  },
+  "music": {
+  }
+}

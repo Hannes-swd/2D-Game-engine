@@ -1,7 +1,7 @@
 {
     "bodyId": "human_base",
     "buildMode": false,
-    "currentSlot": 5,
+    "currentSlot": 4,
     "hairId": "long_brown",
     "inventory": [
         {
@@ -15,6 +15,22 @@
         {
             "amount": 100,
             "id": "beschwItem"
+        },
+        {
+            "amount": 5,
+            "id": "truhenItem"
+        },
+        {
+            "amount": 1,
+            "id": "partikelItem"
+        },
+        {
+            "amount": 1,
+            "id": "kameraItem"
+        },
+        {
+            "amount": 1,
+            "id": "musikItem"
         }
     ],
     "name": "Spieler",
@@ -28,7 +44,7 @@
         "red_shirt"
     ],
     "pantsId": "blue_pants",
-    "posX": 80,
-    "posY": -67,
+    "posX": 199,
+    "posY": -3,
     "shirtId": "red_shirt"
 }
