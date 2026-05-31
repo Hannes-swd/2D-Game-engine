@@ -1,16 +1,20 @@
 {
     "bodyId": "human_base",
     "buildMode": false,
-    "currentSlot": 2,
+    "currentSlot": 4,
     "hairId": "long_brown",
     "inventory": [
         {
-            "amount": 10,
+            "amount": 100,
             "id": "HouseItem"
         },
         {
-            "amount": 7,
+            "amount": 81,
             "id": "grasItem"
+        },
+        {
+            "amount": 100,
+            "id": "beschwItem"
         }
     ],
     "name": "Spieler",
@@ -24,7 +28,7 @@
         "red_shirt"
     ],
     "pantsId": "blue_pants",
-    "posX": 71,
-    "posY": -52,
+    "posX": 153,
+    "posY": 5,
     "shirtId": "red_shirt"
 }

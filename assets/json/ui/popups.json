@@ -6,5 +6,13 @@
         "modal": true,
         "closeOnEsc": true,
         "backgroundColor": [30, 30, 30, 220]
+    },
+    "farmer_dialog": {
+        "title": "Bauer",
+        "width": 300,
+        "height": 200,
+        "modal": true,
+        "closeOnEsc": true,
+        "backgroundColor": [30, 30, 30, 220]
     }
 }

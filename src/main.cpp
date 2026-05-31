@@ -16,6 +16,7 @@
 #include "Dimension.h"
 #include "UI.h"
 #include "clothing.h"
+#include "NPC.h"
 
 
 using json = nlohmann::json;
@@ -91,6 +92,9 @@ int main()
     ground.loadTextures();
     world.init(ground);
 
+    g_npcManager.loadTemplates();
+    g_npcManager.load(assetPath("json/Map/npcs.json"));
+
     float speicherTimer = 0.0f;
     const float SPEICHER_INTERVALL = 30.0f;
 
@@ -103,6 +107,7 @@ int main()
             updatePlayer(localPlayer);
             if (!g_dimensionManager.isInDimension())
                 updateBuildings(world, g_buildingManager, TILE_SIZE);
+            g_npcManager.update(delta);
             g_dimensionManager.update();
         }
         // Kamera nach möglichem Dimensions-Wechsel synchronisieren
@@ -116,6 +121,7 @@ int main()
         speicherTimer += delta;
         if (speicherTimer >= SPEICHER_INTERVALL) {
             world.save(assetPath("json/Map/world.json"));
+            g_npcManager.save(assetPath("json/Map/npcs.json"));
             if (g_dimensionManager.isInDimension()) {
                 // Weltposition speichern, nicht die Positions innerhalb der Dimension
                 Vector2 dimPos = localPlayer.Get_position();
@@ -137,18 +143,27 @@ int main()
             BeginMode2D(camera);
                 draw_dimension(*dim, ground, TILE_SIZE);
                 if (dim->onDraw) dim->onDraw();
+                g_npcManager.draw();
                 drawBuildModeGrid(localPlayer, TILE_SIZE, 20, 0, 0, dim->width - 1, dim->height - 1);
                 drawPlayer(localPlayer);
             EndMode2D();
+            {
+                std::string tip = consumeTooltip();
+                if (!tip.empty()) {
+                    Vector2 mouse = GetMousePosition();
+                    DrawText(tip.c_str(), (int)mouse.x + 12, (int)mouse.y - 20, 14, BLACK);
+                }
+            }
         } else {
             ClearBackground(WHITE);
             BeginMode2D(camera);
                 draw_ground(world, ground, TILE_SIZE);
                 draw_buildings(world, g_buildingManager, TILE_SIZE);
+                g_npcManager.draw();
                 drawBuildModeGrid(localPlayer, TILE_SIZE);
                 drawPlayer(localPlayer);
             EndMode2D();
-            // Tooltip von Building-onHover zeichnen
+            // Tooltip von Building/NPC-onHover zeichnen
             std::string tip = consumeTooltip();
             if (!tip.empty()) {
                 Vector2 mouse = GetMousePosition();
@@ -163,6 +178,7 @@ int main()
     }
 
     world.save(assetPath("json/Map/world.json"));
+    g_npcManager.save(assetPath("json/Map/npcs.json"));
     if (g_dimensionManager.isInDimension()) {
         Vector2 dimPos = localPlayer.Get_position();
         localPlayer.setPositionF(g_dimensionManager.getSavedWorldX(),

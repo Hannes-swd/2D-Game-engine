@@ -1,0 +1,34 @@
+{
+    "beschworen_0": {
+        "bodyId": "human_base",
+        "customVars": {
+            "following": false
+        },
+        "dimensionId": "house_interior_House_3_-2",
+        "extVars": {},
+        "hairId": "long_brown",
+        "inventory": [],
+        "npcId": "beschworen",
+        "pantsId": "blue_pants",
+        "posX": 80.0,
+        "posY": 80.0,
+        "shirtId": "red_shirt",
+        "state": "wander"
+    },
+    "beschworen_1": {
+        "bodyId": "human_base",
+        "customVars": {
+            "following": true
+        },
+        "dimensionId": "",
+        "extVars": {},
+        "hairId": "long_brown",
+        "inventory": [],
+        "npcId": "beschworen",
+        "pantsId": "blue_pants",
+        "posX": 144.0,
+        "posY": 16.0,
+        "shirtId": "red_shirt",
+        "state": "follow_player"
+    }
+}

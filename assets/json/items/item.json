@@ -6,5 +6,9 @@
     "HouseItem": {
         "name": "House",
         "textur": "assets/Images/Map/HouseItem.png"
+    },
+    "beschwItem": {
+        "name": "Beschwörung",
+        "textur": "assets/Images/Map/gras.png"
     }
 }
