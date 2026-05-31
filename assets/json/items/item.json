@@ -9,6 +9,6 @@
     },
     "beschwItem": {
         "name": "Beschwörung",
-        "textur": "assets/Images/Map/gras.png"
+        "textur": "assets/Images/Items/beschwItem.png"
     }
 }

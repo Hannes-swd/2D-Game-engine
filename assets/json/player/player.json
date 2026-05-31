@@ -1,7 +1,7 @@
 {
     "bodyId": "human_base",
     "buildMode": false,
-    "currentSlot": 4,
+    "currentSlot": 5,
     "hairId": "long_brown",
     "inventory": [
         {
@@ -9,7 +9,7 @@
             "id": "HouseItem"
         },
         {
-            "amount": 81,
+            "amount": 46,
             "id": "grasItem"
         },
         {
@@ -28,7 +28,7 @@
         "red_shirt"
     ],
     "pantsId": "blue_pants",
-    "posX": 153,
-    "posY": 5,
+    "posX": 80,
+    "posY": -67,
     "shirtId": "red_shirt"
 }
