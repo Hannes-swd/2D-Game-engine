@@ -20,6 +20,7 @@
 #include "Object.h"
 #include "SoundSystem.h"
 #include "Particles.h"
+#include "HUD.h"
 
 
 using json = nlohmann::json;
@@ -122,6 +123,7 @@ int main()
             g_dimensionManager.update();
         }
         g_particleManager.update(delta);
+        g_hudManager.update();
         g_soundManager.update();
         updateCamera();
 
@@ -183,6 +185,7 @@ int main()
             }
         }
             drawInventory(localPlayer);
+            g_hudManager.draw();
             g_uiManager.draw();
         EndDrawing();
 

@@ -10,8 +10,8 @@
         "inventory": [],
         "npcId": "beschworen",
         "pantsId": "blue_pants",
-        "posX": 114.66671752929688,
-        "posY": -80.0,
+        "posX": 48.0,
+        "posY": -16.0,
         "shirtId": "red_shirt",
         "state": "wander"
     },
@@ -26,7 +26,7 @@
         "inventory": [],
         "npcId": "beschworen",
         "pantsId": "blue_pants",
-        "posX": 80.0,
+        "posX": 112.0,
         "posY": -112.0,
         "shirtId": "red_shirt",
         "state": "wander"
