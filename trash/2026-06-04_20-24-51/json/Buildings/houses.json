@@ -1,0 +1,9 @@
+{
+    "House": {
+        "name": "Kleines Haus",
+        "textur": "assets/Images/Buildings/Haus1.png",
+        "width": 2,
+        "height": 1,
+        "solid": true
+    }
+}

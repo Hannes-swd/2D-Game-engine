@@ -1,0 +1,12 @@
+{
+  "truhe": {
+    "name": "Truhe",
+    "texture": "assets/Images/Map/gras.png",
+    "width": 1,
+    "height": 1,
+    "solid": true,
+    "interactable": true,
+    "interact_radius": 40,
+    "layer": "below_player"
+  }
+}

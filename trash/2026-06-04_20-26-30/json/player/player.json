@@ -1,0 +1,21 @@
+{
+    "bodyId": "human_base",
+    "buildMode": false,
+    "currentSlot": 7,
+    "hairId": "long_brown",
+    "inventory": [],
+    "name": "Spieler",
+    "ownedHair": [
+        "long_brown"
+    ],
+    "ownedPants": [
+        "blue_pants"
+    ],
+    "ownedShirts": [
+        "red_shirt"
+    ],
+    "pantsId": "blue_pants",
+    "posX": 0,
+    "posY": 0,
+    "shirtId": "red_shirt"
+}

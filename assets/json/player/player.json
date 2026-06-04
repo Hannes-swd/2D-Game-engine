@@ -1,38 +1,9 @@
 {
     "bodyId": "human_base",
     "buildMode": false,
-    "currentSlot": 8,
+    "currentSlot": 7,
     "hairId": "long_brown",
-    "inventory": [
-        {
-            "amount": 100,
-            "id": "HouseItem"
-        },
-        {
-            "amount": 46,
-            "id": "grasItem"
-        },
-        {
-            "amount": 100,
-            "id": "beschwItem"
-        },
-        {
-            "amount": 5,
-            "id": "truhenItem"
-        },
-        {
-            "amount": 1,
-            "id": "partikelItem"
-        },
-        {
-            "amount": 1,
-            "id": "kameraItem"
-        },
-        {
-            "amount": 1,
-            "id": "musikItem"
-        }
-    ],
+    "inventory": [],
     "name": "Spieler",
     "ownedHair": [
         "long_brown"
@@ -44,7 +15,7 @@
         "red_shirt"
     ],
     "pantsId": "blue_pants",
-    "posX": -38,
-    "posY": -85,
+    "posX": 0,
+    "posY": 0,
     "shirtId": "red_shirt"
 }

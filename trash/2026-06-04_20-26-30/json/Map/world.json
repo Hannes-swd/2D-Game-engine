@@ -1,0 +1,8 @@
+{
+    "buildings": {},
+    "default_typ": "gras",
+    "name": "Meine Welt",
+    "tiles": {
+        "0,0": "gras"
+    }
+}

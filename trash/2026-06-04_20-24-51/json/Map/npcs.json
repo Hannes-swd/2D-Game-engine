@@ -1,0 +1,34 @@
+{
+    "beschworen_0": {
+        "bodyId": "human_base",
+        "customVars": {
+            "following": false
+        },
+        "dimensionId": "",
+        "extVars": {},
+        "hairId": "long_brown",
+        "inventory": [],
+        "npcId": "beschworen",
+        "pantsId": "blue_pants",
+        "posX": 48.0,
+        "posY": -48.0,
+        "shirtId": "red_shirt",
+        "state": "wander"
+    },
+    "beschworen_1": {
+        "bodyId": "human_base",
+        "customVars": {
+            "following": false
+        },
+        "dimensionId": "",
+        "extVars": {},
+        "hairId": "long_brown",
+        "inventory": [],
+        "npcId": "beschworen",
+        "pantsId": "blue_pants",
+        "posX": 112.0,
+        "posY": -112.0,
+        "shirtId": "red_shirt",
+        "state": "wander"
+    }
+}
