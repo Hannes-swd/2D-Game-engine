@@ -21,6 +21,7 @@
 #include "SoundSystem.h"
 #include "Particles.h"
 #include "HUD.h"
+#include "WorldGen.h"
 
 
 using json = nlohmann::json;
@@ -55,6 +56,7 @@ int main()
     SetWindowState(FLAG_WINDOW_RESIZABLE);
     SetTargetFPS(60);
     g_soundManager.init();
+    g_worldGen.load(assetPath("json/Map/generation.json"));
 
     // config.json load – try/catch damit schlechte JSON nicht abort() ausloest
     {

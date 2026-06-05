@@ -1,4 +1,6 @@
 #include "ChunkManager.h"
+#include "WorldGen.h"
+#include "Object.h"
 #include <fstream>
 #include <filesystem>
 #include <iostream>
@@ -79,6 +81,20 @@ void ChunkManager::loadChunk(int cx, int cy) {
         } catch (const std::exception& e) {
             std::cerr << "[Chunk] JSON Fehler in " << path << ": " << e.what() << std::endl;
         }
+    }
+
+    // Neuer Chunk (keine Datei vorhanden) → ggf. Terrain generieren
+    if (!f.is_open() && g_worldGen.isEnabled()) {
+        for (int ly = 0; ly < CHUNK_SIZE; ly++) {
+            for (int lx = 0; lx < CHUNK_SIZE; lx++) {
+                int wx = cx * CHUNK_SIZE + lx;
+                int wy = cy * CHUNK_SIZE + ly;
+                chunk.tiles[ly][lx] = g_worldGen.generateTile(wx, wy);
+                std::string objId = g_worldGen.generateObjectAt(wx, wy);
+                if (!objId.empty()) g_objectManager.place(objId, wx, wy);
+            }
+        }
+        chunk.dirty = true; // generierten Chunk direkt speichern
     }
 
     loaded[key] = std::move(chunk);
