@@ -1,9 +1,0 @@
-{
-    "blue_pants": {
-        "name": "Blue Pants",
-        "spriteFrontal": "Images/clothing/pants/blue_frontal.png",
-        "spriteSide": "Images/clothing/pants/blue_side.png",
-        "offsetX": 0,
-        "offsetY": 64
-    }
-}

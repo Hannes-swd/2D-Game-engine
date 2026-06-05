@@ -189,8 +189,6 @@ void updatePlayer(player& p) {
             // Hauptwelt: Tile muss existieren und begehbar sein
             int tx = (int)floorf(x / TILE_SIZE);
             int ty = (int)floorf(y / TILE_SIZE);
-            std::string key = std::to_string(tx) + "," + std::to_string(ty);
-            if (world.tiles.count(key) == 0) return false;
             if (world.groundDatabase && !world.groundDatabase->isWalkable(world.getTile(tx, ty)))
                 return false;
             // Gebäude-Kollision: alle Tiles die der Spieler-Kreis überlappt prüfen

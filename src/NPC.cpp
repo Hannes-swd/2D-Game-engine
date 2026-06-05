@@ -184,8 +184,6 @@ static bool npcTileWalkable(int tx, int ty) {
         const std::string& type = (it != dim->tiles.end()) ? it->second : dim->defaultTile;
         return world.groundDatabase->isWalkable(type);
     }
-    std::string key = std::to_string(tx) + "," + std::to_string(ty);
-    if (world.tiles.count(key) == 0) return false;
     return world.groundDatabase->isWalkable(world.getTile(tx, ty));
 }
 
@@ -196,13 +194,14 @@ std::vector<Vector2> NPCManager::findPath(Vector2 from, Vector2 to) {
     if (dim) {
         // Alle Tiles der Dimension explizit befüllen (A* erwartet existierende Keys)
         Map dimMap;
-        dimMap.defaultType    = dim->defaultTile;
-        dimMap.groundDatabase = world.groundDatabase;
+        dimMap.defaultType           = dim->defaultTile;
+        dimMap.chunkMgr.defaultTile  = dim->defaultTile;
+        dimMap.groundDatabase        = world.groundDatabase;
         for (int y = 0; y < dim->height; ++y) {
             for (int x = 0; x < dim->width; ++x) {
                 std::string key = std::to_string(x) + "," + std::to_string(y);
                 auto it = dim->tiles.find(key);
-                dimMap.tiles[key] = (it != dim->tiles.end()) ? it->second : dim->defaultTile;
+                dimMap.setTile(x, y, (it != dim->tiles.end()) ? it->second : dim->defaultTile);
             }
         }
         return astar_findPath(from, to, 32, dimMap, *world.groundDatabase,

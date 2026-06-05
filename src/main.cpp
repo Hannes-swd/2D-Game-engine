@@ -113,6 +113,10 @@ int main()
         float delta = GetFrameTime();
         bool uiBlocksWorld = g_uiManager.isUIOpen() && g_uiManager.isModal();
         g_uiManager.update();
+        {
+            Vector2 ppos = localPlayer.Get_position();
+            world.updateChunks((int)(ppos.x / TILE_SIZE), (int)(ppos.y / TILE_SIZE));
+        }
         if (!uiBlocksWorld) {
             updatePlayer(localPlayer);
             if (!g_dimensionManager.isInDimension()) {

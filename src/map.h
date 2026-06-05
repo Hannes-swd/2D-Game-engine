@@ -2,6 +2,7 @@
 #include <unordered_map>
 #include <string>
 #include <nlohmann/json.hpp>
+#include "ChunkManager.h"
 
 struct GroundDatabase;
 
@@ -14,7 +15,7 @@ struct PlacedBuilding {
 };
 
 struct Map {
-    std::unordered_map<std::string, std::string> tiles;
+    ChunkManager chunkMgr;
     std::unordered_map<std::string, PlacedBuilding> buildings;
     const GroundDatabase* groundDatabase = nullptr;
     std::string defaultType = "gras";
@@ -24,10 +25,13 @@ struct Map {
     std::string getTile(int x, int y) const;
     void placeBuilding(const PlacedBuilding& pb);
     PlacedBuilding* getBuildingAt(int x, int y);
-    void save(const std::string& datei) const;
+    void save(const std::string& datei);
     void load(const std::string& datei);
     void clear();
-    int getSize() const;
+    int  getSize() const;
+
+    // Jeden Frame aufrufen – lädt/entlädt Chunks rund um den Spieler
+    void updateChunks(int tileX, int tileY, int radius = 2);
 };
 
 void draw_ground(const Map& world, const GroundDatabase& ground, int tileSize);

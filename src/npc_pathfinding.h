@@ -30,8 +30,6 @@ inline std::vector<Vector2> astar_findPath(
     if (sx == gx && sy == gy) return {};
 
     auto isWalkable = [&](int tx, int ty) -> bool {
-        std::string key = std::to_string(tx) + "," + std::to_string(ty);
-        if (world.tiles.count(key) == 0) return false;
         return ground.isWalkable(world.getTile(tx, ty));
     };
 
