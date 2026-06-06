@@ -8,6 +8,3 @@
 //  Die privaten Variablen aus player_ext_vars.h sind hier direkt zugänglich.
 // ═══════════════════════════════════════════════════════════════════════════════
 
-int  GetEssen() const       { return essen; }
-void GiebEssen(int menge)   { essen = std::min(100, essen + menge); }
-void NimmEssen(int menge)   { essen = std::max(0,   essen - menge); }

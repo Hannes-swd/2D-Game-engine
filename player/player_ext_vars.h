@@ -7,4 +7,3 @@
 //  Auf diese Variablen kann dann in player_ext_methods.h zugegriffen werden.
 // ═══════════════════════════════════════════════════════════════════════════════
 
-int essen = 100;

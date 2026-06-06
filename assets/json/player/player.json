@@ -4,7 +4,7 @@
     "currentSlot": 6,
     "hairId": "long_brown",
     "inventory": [],
-    "name": "Spieler",
+    "name": "Player",
     "ownedHair": [
         "long_brown"
     ],
@@ -15,7 +15,7 @@
         "red_shirt"
     ],
     "pantsId": "blue_pants",
-    "posX": -8,
-    "posY": -972,
+    "posX": 0,
+    "posY": 0,
     "shirtId": "red_shirt"
 }
