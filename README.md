@@ -39,7 +39,8 @@ The engine also has a **built-in GUI system** you can use from scripts, so build
 2. **Script** — add C++ files in `items/`, `objects/`, `player/` etc. to give things behavior.
 3. **Build & run** — compile and start the engine. Your game is now running.
 
-You never touch engine source code. The engine picks up your files automatically at startup.
+You never have to touch the engine source code — the `src/` folder can stay completely untouched.
+The engine picks up your files automatically at startup.
 
 ---
 
